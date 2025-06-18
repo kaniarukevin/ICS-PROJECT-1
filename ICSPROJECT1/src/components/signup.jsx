@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,9 +36,9 @@ const Signup = () => {
       if (!res.ok) {
         setMessage(data.message || "Signup failed");
       } else {
-       setMessage("✅ Signup successful!");
+        setMessage("✅ Signup successful!");
         setTimeout(() => {
-          navigate("/login"); 
+          navigate("/login"); // ✅ Redirect after 1s
         }, 1000);
       }
     } catch (error) {
@@ -47,7 +50,6 @@ const Signup = () => {
   return (
     <div className="signup-container">
       <h2>Sign Up</h2>
-
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Name:</label>
