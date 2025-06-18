@@ -1,0 +1,93 @@
+.auth-page {
+  --container-bg: #ffffff;
+  --text-color: #1e293b;
+  --heading-color: #111827;
+  --label-color: #065f46;
+  --input-border: #d1d5db;
+  --input-bg: #f0fdf4;
+  --accent-color: #10b981;
+  --accent-hover: #059669;
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 4rem auto;
+  padding: 2.5rem;
+  border-radius: 12px;
+  background-color: var(--container-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  color: var(--text-color);
+}
+
+.auth-container h2 {
+  margin-bottom: 1.5rem;
+  color: var(--heading-color);
+  font-size: 1.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--label-color);
+}
+
+.form-group input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+button[type="submit"] {
+  width: 100%;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--accent-hover);
+}
+
+.auth-message {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.signup-link,
+.login-link {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.signup-link a,
+.login-link a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+.signup-link a:hover,
+.login-link a:hover {
+  text-decoration: underline;
+}

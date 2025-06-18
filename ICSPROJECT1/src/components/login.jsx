@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./authentication.css"; // Assuming you have a CSS file for styling
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -43,7 +44,8 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <div className="auth-page">
+    <div className="auth-container">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -61,6 +63,7 @@ const Login = () => {
       <div className="signup-link">
         <p>Don't have an account? <a href="/signup">Sign Up</a></p>
       </div>
+    </div>
     </div>
   );
 };

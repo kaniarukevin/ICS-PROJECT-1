@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./authentication.css";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -48,7 +49,8 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-container">
+    <div className="auth-page">
+    <div className="auth-container">
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -71,6 +73,7 @@ const Signup = () => {
       <div className="login-link">
         <p>Already have an account? <a href="/login">Login</a></p>
       </div>
+    </div>
     </div>
   );
 };
