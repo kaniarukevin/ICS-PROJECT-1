@@ -20,7 +20,7 @@ const handleSubmit = async (e) => {
       name: fullName,
       email: formData.email,
       password: formData.password,
-      role: 'parent', // 👈 Add this
+      role: 'school_admin', // 👈 Add this
     });
     toast.success('Registered successfully!');
     navigate('/login');
