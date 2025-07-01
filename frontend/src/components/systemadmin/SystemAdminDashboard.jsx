@@ -1,3 +1,5 @@
+//frontend/src/components/systemadmin/SystemAdminDashboard.jsx
+
 import React, { useState, useEffect } from 'react';
 
 const SystemAdminDashboard = ({ onNavigate }) => {

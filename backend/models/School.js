@@ -1,5 +1,5 @@
+// backend/models/School.js
 const mongoose = require('mongoose');
-// At the top of systemAdminController.js
 const User = require('../models/user'); // Adjust path as needed
 
 const schoolSchema = new mongoose.Schema({

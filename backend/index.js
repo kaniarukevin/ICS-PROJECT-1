@@ -1,3 +1,5 @@
+//backend/index.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -51,6 +53,7 @@ mongoose.connect(mongoURI)
 const authRoutes = require('./routes/authRoutes');
 const schoolAdminRoutes = require('./routes/schoolAdmin');
 const systemAdminRoutes = require('./routes/systemAdmin');
+const schoolAdminRegistrationRoutes = require('./routes/schoolAdminRegistration'); // ✅ NEW
 
 // Use routes with logging
 console.log('🛣️ Setting up routes...');
@@ -63,6 +66,9 @@ console.log('✅ School admin routes mounted at /api/school-admin');
 
 app.use('/api/system-admin', systemAdminRoutes);
 console.log('✅ System admin routes mounted at /api/system-admin');
+
+app.use('/api/school-admin-registration', schoolAdminRegistrationRoutes); // ✅ NEW
+console.log('✅ School admin registration routes mounted at /api/school-admin-registration');
 
 // Enhanced debug route
 app.get('/debug/collections', async (req, res) => {
@@ -187,6 +193,7 @@ app.get('/', (req, res) => {
 			auth: '/api/auth',
 			schoolAdmin: '/api/school-admin',
 			systemAdmin: '/api/system-admin',
+			schoolAdminRegistration: '/api/school-admin-registration', // ✅ NEW
 			debug: '/debug/collections',
 			testSchools: '/debug/schools',
 			testSystemAdmin: '/debug/system-admin'
@@ -239,5 +246,6 @@ app.listen(PORT, () => {
 	console.log('  🏫 /api/system-admin/schools');
 	console.log('  👥 /api/system-admin/users');
 	console.log('  📈 /api/system-admin/reports');
+	console.log('  🏫 /api/school-admin-registration/register'); // ✅ NEW
 	console.log('');
 });

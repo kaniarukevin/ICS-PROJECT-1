@@ -1,30 +1,68 @@
 {
-  "name": "frontend",
+  "name": "school-tour-booking-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Frontend for School Tour Booking System",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test": "vitest",
+    "format": "prettier --write src/"
   },
   "dependencies": {
-    "axios": "^1.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.26.1",
-    "react-toastify": "^10.0.5"
+    "react-router-dom": "^6.15.0",
+    "axios": "^1.5.0",
+    "date-fns": "^2.30.0",
+    "react-hook-form": "^7.45.4",
+    "react-query": "^3.39.3",
+    "react-hot-toast": "^2.4.1",
+    "lucide-react": "^0.263.1",
+    "recharts": "^2.8.0",
+    "react-chartjs-2": "^5.2.0",
+    "chart.js": "^4.4.0",
+    "react-modal": "^3.16.1",
+    "react-select": "^5.7.4",
+    "react-datepicker": "^4.16.0",
+    "react-table": "^7.8.0",
+    "react-csv": "^2.2.2",
+    "lodash": "^4.17.21",
+    "classnames": "^2.3.2",
+    "prop-types": "^15.8.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^4.4.5",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "globals": "^15.9.0",
-    "vite": "^5.4.1"
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "prettier": "^3.0.2",
+    "vitest": "^0.34.2",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/user-event": "^14.4.3",
+    "jsdom": "^22.1.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

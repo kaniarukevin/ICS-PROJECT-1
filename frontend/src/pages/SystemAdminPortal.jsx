@@ -1,3 +1,5 @@
+//frontend/src/pages/SystemAdminPortal.jsx
+
 import React, { useState } from 'react';
 import SystemAdminDashboard from '../components/systemadmin/SystemAdminDashboard';
 import ManageSchools from '../components/systemadmin/ManageSchools';

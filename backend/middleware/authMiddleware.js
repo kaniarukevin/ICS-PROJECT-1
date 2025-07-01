@@ -1,5 +1,6 @@
+// backend/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const User = require('../models/user'); // Note: lowercase 'user' - adjust if your file is different
 
 const authMiddleware = async (req, res, next) => {
 	try {
@@ -7,65 +8,98 @@ const authMiddleware = async (req, res, next) => {
 		const authHeader = req.header('Authorization');
 		
 		if (!authHeader) {
-			console.log('❌ Auth failed: No Authorization header');
-			return res.status(401).json({ message: 'Access denied. No token provided.' });
+			return res.status(401).json({ message: 'No token provided, authorization denied' });
 		}
 
+		// Check if it's a Bearer token
 		if (!authHeader.startsWith('Bearer ')) {
-			console.log('❌ Auth failed: Invalid token format');
-			return res.status(401).json({ message: 'Access denied. Invalid token format.' });
+			return res.status(401).json({ message: 'Invalid token format. Use Bearer token' });
 		}
 
-		// Remove 'Bearer ' from token
-		const token = authHeader.slice(7);
-		
+		// Extract token
+		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
 		if (!token) {
-			console.log('❌ Auth failed: Empty token');
-			return res.status(401).json({ message: 'Access denied. No token provided.' });
+			return res.status(401).json({ message: 'No token provided, authorization denied' });
 		}
-
-		console.log('🔐 Verifying token...');
 
 		// Verify token
-		const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		
-		console.log(`🔐 Token decoded for user ID: ${decoded.userId}`);
+		// Find user
+		const user = await User.findById(decoded.userId)
+			.populate('schoolId', 'name schoolType isVerified')
+			.select('-password');
 
-		// Get user from database
-		const user = await User.findById(decoded.userId).select('-password');
-		
 		if (!user) {
-			console.log('❌ Auth failed: User not found in database');
-			return res.status(401).json({ message: 'Token is not valid. User not found.' });
+			return res.status(401).json({ message: 'Token is valid but user not found' });
 		}
 
+		// Check if user is active
 		if (!user.isActive) {
-			console.log(`❌ Auth failed: User ${user.name} account is deactivated`);
-			return res.status(401).json({ message: 'Account is deactivated.' });
+			return res.status(401).json({ message: 'User account is disabled' });
 		}
-
-		console.log(`✅ Auth successful: User ${user.name} (${user.role})`);
 
 		// Add user to request object
 		req.user = user;
+		
+		// Log successful authentication (optional)
+		console.log(`🔐 Authenticated user: ${user.email} (${user.role})`);
+		
 		next();
-		
+
 	} catch (error) {
+		console.error('❌ Auth middleware error:', error.message);
+		
 		if (error.name === 'JsonWebTokenError') {
-			console.log('❌ Auth failed: Invalid token');
-			return res.status(401).json({ message: 'Token is not valid.' });
-		}
-		if (error.name === 'TokenExpiredError') {
-			console.log('❌ Auth failed: Token expired');
-			return res.status(401).json({ message: 'Token has expired.' });
+			return res.status(401).json({ message: 'Invalid token' });
 		}
 		
-		console.error('❌ Auth middleware error:', error);
-		res.status(500).json({ 
-			message: 'Server error in authentication', 
+		if (error.name === 'TokenExpiredError') {
+			return res.status(401).json({ message: 'Token has expired' });
+		}
+
+		return res.status(500).json({ 
+			message: 'Authentication error', 
 			error: error.message 
 		});
 	}
 };
 
-module.exports = authMiddleware;
+// Optional middleware to check if user is authenticated but don't fail if not
+const optionalAuth = async (req, res, next) => {
+	try {
+		const authHeader = req.header('Authorization');
+		
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			return next(); // Continue without user
+		}
+
+		const token = authHeader.substring(7);
+		
+		if (!token) {
+			return next(); // Continue without user
+		}
+
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		const user = await User.findById(decoded.userId)
+			.populate('schoolId', 'name schoolType isVerified')
+			.select('-password');
+
+		if (user && user.isActive) {
+			req.user = user;
+		}
+
+		next();
+
+	} catch (error) {
+		// If optional auth fails, just continue without user
+		console.log('⚠️ Optional auth failed, continuing without user');
+		next();
+	}
+};
+
+module.exports = {
+	authMiddleware,
+	optionalAuth
+};
