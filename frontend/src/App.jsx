@@ -1,21 +1,18 @@
-// frontend/src/App.jsx (Complete with All Registration Routes)
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Import existing components
+import Home from './pages/home';
 import Login from './pages/Login';
+import SchoolDetails from './pages/schoolDetails';
 import Dashboard from './pages/Dashboard';
 import SchoolAdminPortal from './pages/SchoolAdminPortal';
 import SystemAdminPortal from './pages/SystemAdminPortal';
-
-// Import new registration components
 import SelectRole from './pages/SelectRole';
 import RegisterParent from './pages/RegisterParent';
 import RegisterSchoolAdmin from './pages/RegisterSchoolAdmin';
-
-// Import common components
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Navbar from './components/common/Navbar';
+import Results from './pages/results';
 
 function App() {
 	return (
@@ -23,75 +20,47 @@ function App() {
 			<div className="App">
 				<Navbar />
 				<Routes>
+					{/* Public Home Page */}
+					<Route path="/" element={<Home />} />
+
 					{/* Authentication Routes */}
 					<Route path="/login" element={<Login />} />
-					
-					{/* Registration Routes */}
 					<Route path="/select-role" element={<SelectRole />} />
 					<Route path="/register/parent" element={<RegisterParent />} />
 					<Route path="/register/school-admin" element={<RegisterSchoolAdmin />} />
-					
-					{/* Main Dashboard Route */}
+
+					 <Route path="/school/:id" element={<SchoolDetails />} />
+
+					 <Route path='/results' element={<Results />} />
+
+					{/* Parent Dashboard */}
 					<Route path="/dashboard" element={
-						<ProtectedRoute>
+						<ProtectedRoute requiredRole="parent">
 							<Dashboard />
 						</ProtectedRoute>
 					} />
-					
-					{/* Role-Specific Portal Routes */}
+
+					{/* School Admin Portal */}
 					<Route path="/school-admin/*" element={
 						<ProtectedRoute requiredRole="school_admin">
 							<SchoolAdminPortal />
 						</ProtectedRoute>
 					} />
-					
+
+					{/* System Admin Portal */}
 					<Route path="/system-admin/*" element={
 						<ProtectedRoute requiredRole="system_admin">
 							<SystemAdminPortal />
 						</ProtectedRoute>
 					} />
-					
-					{/* Default Route - Smart Redirect */}
-					<Route path="/" element={<SmartRedirect />} />
-					
-					{/* Catch-all route */}
+
+					{/* Catch-All for 404s */}
 					<Route path="*" element={<NotFound />} />
 				</Routes>
 			</div>
 		</Router>
 	);
 }
-
-// Smart redirect component that redirects based on authentication state
-const SmartRedirect = () => {
-	const token = localStorage.getItem('token');
-	const user = localStorage.getItem('user');
-	
-	if (token && user) {
-		try {
-			const userData = JSON.parse(user);
-			// Redirect based on user role
-			switch (userData.role) {
-				case 'school_admin':
-					return <Navigate to="/school-admin" replace />;
-				case 'system_admin':
-					return <Navigate to="/system-admin" replace />;
-				case 'parent':
-					return <Navigate to="/dashboard" replace />;
-				default:
-					return <Navigate to="/dashboard" replace />;
-			}
-		} catch (error) {
-			// If user data is corrupted, clear it and redirect to login
-			localStorage.removeItem('token');
-			localStorage.removeItem('user');
-			return <Navigate to="/login" replace />;
-		}
-	}
-	
-	// If not authenticated, redirect to login
-	return <Navigate to="/login" replace />;
-};
 
 // 404 Not Found component
 const NotFound = () => {
@@ -105,20 +74,20 @@ const NotFound = () => {
 			textAlign: 'center',
 			padding: '2rem'
 		}}>
-			<h1 style={{ 
-				fontSize: '6rem', 
+			<h1 style={{
+				fontSize: '6rem',
 				margin: 0,
 				color: '#dc3545'
 			}}>
 				404
 			</h1>
-			<h2 style={{ 
+			<h2 style={{
 				color: '#333',
 				marginBottom: '1rem'
 			}}>
 				Page Not Found
 			</h2>
-			<p style={{ 
+			<p style={{
 				color: '#666',
 				marginBottom: '2rem',
 				maxWidth: '400px'

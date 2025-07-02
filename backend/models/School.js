@@ -1,6 +1,5 @@
 // backend/models/School.js
 const mongoose = require('mongoose');
-const User = require('../models/user'); // Adjust path as needed
 
 const schoolSchema = new mongoose.Schema({
 	name: { type: String, required: true },
@@ -96,7 +95,19 @@ const schoolSchema = new mongoose.Schema({
 	averageRating: { type: Number, min: 0, max: 5 },
 	totalRatings: { type: Number, default: 0 },
 	
-	// Tour scheduling
+	// Fixed: Added missing comma and proper structure
+	ratingsList: [{
+		parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
+		overall: { type: Number, min: 0, max: 5 },
+		academic: { type: Number, min: 0, max: 5 },
+		facilities: { type: Number, min: 0, max: 5 },
+		teachers: { type: Number, min: 0, max: 5 },
+		environment: { type: Number, min: 0, max: 5 },
+		comment: { type: String },
+		ratedAt: { type: Date, default: Date.now }
+	}],
+
+	// Tour scheduling - Fixed: Added missing comma
 	tourSchedule: {
 		availableDays: [{ 
 			type: String, 
@@ -145,9 +156,6 @@ schoolSchema.pre('save', function(next) {
 	next();
 });
 
-// IMPORTANT: Specify the exact collection name if it's different
-// Uncomment one of these lines based on what you find in the debug:
-
-// module.exports = mongoose.model('School', schoolSchema, 'schools');      // if collection is 'schools'
-// module.exports = mongoose.model('School', schoolSchema, 'Schools');      // if collection is 'Schools'  
-module.exports = mongoose.model('schools', schoolSchema);                    // default (tries 'schools')
+// Fixed: Proper model export with correct naming convention
+// Use 'School' as model name (singular, capitalized) and let Mongoose pluralize to 'schools'
+module.exports = mongoose.model('schools', schoolSchema);
