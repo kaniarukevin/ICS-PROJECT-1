@@ -1,4 +1,4 @@
-// frontend/src/components/auth/ParentRegistration.jsx
+// frontend/src/components/auth/ParentRegistration.jsx (Simplified - No Children Section)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,16 +23,6 @@ const ParentRegistration = () => {
 			zipCode: '',
 			country: 'Kenya'
 		},
-		
-		// Children Information
-		children: [
-			{
-				name: '',
-				age: '',
-				grade: '',
-				school: ''
-			}
-		],
 		
 		// Preferences
 		interestedSchoolTypes: [],
@@ -103,41 +93,6 @@ const ParentRegistration = () => {
 		}
 	};
 
-	// Handle child information changes
-	const handleChildChange = (index, field, value) => {
-		const updatedChildren = [...formData.children];
-		updatedChildren[index] = {
-			...updatedChildren[index],
-			[field]: value
-		};
-		setFormData(prev => ({
-			...prev,
-			children: updatedChildren
-		}));
-	};
-
-	// Add another child
-	const addChild = () => {
-		setFormData(prev => ({
-			...prev,
-			children: [
-				...prev.children,
-				{ name: '', age: '', grade: '', school: '' }
-			]
-		}));
-	};
-
-	// Remove child
-	const removeChild = (index) => {
-		if (formData.children.length > 1) {
-			const updatedChildren = formData.children.filter((_, i) => i !== index);
-			setFormData(prev => ({
-				...prev,
-				children: updatedChildren
-			}));
-		}
-	};
-
 	// Form validation
 	const validateForm = () => {
 		const newErrors = {};
@@ -150,13 +105,6 @@ const ParentRegistration = () => {
 		if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
 		if (!formData.address.city.trim()) newErrors.city = 'City is required';
 		if (!formData.address.state.trim()) newErrors.state = 'State/County is required';
-		
-		// Validate at least one child
-		const validChildren = formData.children.filter(child => child.name.trim() && child.age);
-		if (validChildren.length === 0) {
-			newErrors.children = 'At least one child\'s information is required';
-		}
-		
 		if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
 		
 		setErrors(newErrors);
@@ -172,11 +120,6 @@ const ParentRegistration = () => {
 		setLoading(true);
 		
 		try {
-			// Filter out empty children
-			const validChildren = formData.children.filter(child => 
-				child.name.trim() && child.age
-			);
-
 			const registrationData = {
 				name: formData.name.trim(),
 				email: formData.email.toLowerCase().trim(),
@@ -190,7 +133,6 @@ const ParentRegistration = () => {
 					zipCode: formData.address.zipCode.trim(),
 					country: formData.address.country
 				},
-				children: validChildren,
 				preferences: {
 					interestedSchoolTypes: formData.interestedSchoolTypes,
 					maxDistance: formData.maxDistance ? parseInt(formData.maxDistance) : null,
@@ -538,145 +480,6 @@ const ParentRegistration = () => {
 								/>
 							</div>
 						</div>
-					</div>
-
-					{/* Children Information */}
-					<div style={{ marginBottom: '2rem' }}>
-						<div style={{ 
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: '1rem'
-						}}>
-							<h3 style={{ 
-								color: '#333',
-								margin: 0,
-								borderBottom: '2px solid #28a745',
-								paddingBottom: '0.5rem'
-							}}>
-								👶 Children Information
-							</h3>
-							<button
-								type="button"
-								onClick={addChild}
-								style={{
-									padding: '0.5rem 1rem',
-									backgroundColor: '#28a745',
-									color: 'white',
-									border: 'none',
-									borderRadius: '4px',
-									cursor: 'pointer',
-									fontSize: '0.9rem'
-								}}
-							>
-								+ Add Child
-							</button>
-						</div>
-						
-						{errors.children && (
-							<div style={{ color: '#dc3545', fontSize: '0.9rem', marginBottom: '1rem' }}>
-								{errors.children}
-							</div>
-						)}
-
-						{formData.children.map((child, index) => (
-							<div key={index} style={{ 
-								backgroundColor: '#f8f9fa',
-								padding: '1rem',
-								borderRadius: '4px',
-								marginBottom: '1rem',
-								border: '1px solid #e0e0e0'
-							}}>
-								<div style={{ 
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-									marginBottom: '1rem'
-								}}>
-									<h4 style={{ 
-										margin: 0,
-										color: '#333',
-										fontSize: '1.1rem'
-									}}>
-										Child {index + 1}
-									</h4>
-									{formData.children.length > 1 && (
-										<button
-											type="button"
-											onClick={() => removeChild(index)}
-											style={{
-												backgroundColor: '#dc3545',
-												color: 'white',
-												border: 'none',
-												borderRadius: '4px',
-												padding: '0.25rem 0.5rem',
-												cursor: 'pointer',
-												fontSize: '0.8rem'
-											}}
-										>
-											Remove
-										</button>
-									)}
-								</div>
-
-								<div style={{ 
-									display: 'grid',
-									gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-									gap: '1rem'
-								}}>
-									<input
-										type="text"
-										placeholder="Child's name *"
-										value={child.name}
-										onChange={(e) => handleChildChange(index, 'name', e.target.value)}
-										style={{
-											padding: '0.5rem',
-											border: '1px solid #ddd',
-											borderRadius: '4px',
-											fontSize: '0.9rem'
-										}}
-									/>
-									<input
-										type="number"
-										placeholder="Age *"
-										value={child.age}
-										onChange={(e) => handleChildChange(index, 'age', e.target.value)}
-										min="3"
-										max="25"
-										style={{
-											padding: '0.5rem',
-											border: '1px solid #ddd',
-											borderRadius: '4px',
-											fontSize: '0.9rem'
-										}}
-									/>
-									<input
-										type="text"
-										placeholder="Current grade"
-										value={child.grade}
-										onChange={(e) => handleChildChange(index, 'grade', e.target.value)}
-										style={{
-											padding: '0.5rem',
-											border: '1px solid #ddd',
-											borderRadius: '4px',
-											fontSize: '0.9rem'
-										}}
-									/>
-									<input
-										type="text"
-										placeholder="Current school"
-										value={child.school}
-										onChange={(e) => handleChildChange(index, 'school', e.target.value)}
-										style={{
-											padding: '0.5rem',
-											border: '1px solid #ddd',
-											borderRadius: '4px',
-											fontSize: '0.9rem'
-										}}
-									/>
-								</div>
-							</div>
-						))}
 					</div>
 
 					{/* Preferences */}
