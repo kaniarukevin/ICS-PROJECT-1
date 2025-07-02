@@ -42,7 +42,7 @@ const Navbar = () => {
 						</Link>
 					)}
 
-					<span>Hello, {user.name} ({user.role})</span>
+					<span>Hello, {user.name} </span>
 					<button 
 						onClick={handleLogout}
 						style={{ 

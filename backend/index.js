@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+
 const app = express();
 
 // Middleware
@@ -53,7 +54,8 @@ mongoose.connect(mongoURI)
 const authRoutes = require('./routes/authRoutes');
 const schoolAdminRoutes = require('./routes/schoolAdmin');
 const systemAdminRoutes = require('./routes/systemAdmin');
-const schoolAdminRegistrationRoutes = require('./routes/schoolAdminRegistration'); // ✅ NEW
+const schoolAdminRegistrationRoutes = require('./routes/schoolAdminRegistration'); 
+const parentRoutes = require('./routes/parents'); 
 
 // Use routes with logging
 console.log('🛣️ Setting up routes...');
@@ -67,8 +69,11 @@ console.log('✅ School admin routes mounted at /api/school-admin');
 app.use('/api/system-admin', systemAdminRoutes);
 console.log('✅ System admin routes mounted at /api/system-admin');
 
-app.use('/api/school-admin-registration', schoolAdminRegistrationRoutes); // ✅ NEW
+app.use('/api/school-admin-registration', schoolAdminRegistrationRoutes); // 
 console.log('✅ School admin registration routes mounted at /api/school-admin-registration');
+
+app.use('/api/parents', parentRoutes);
+console.log('✅ Parent routes mounted at /api/parents');
 
 // Enhanced debug route
 app.get('/debug/collections', async (req, res) => {
@@ -182,6 +187,24 @@ app.get('/debug/system-admin', (req, res) => {
 	});
 });
 
+app.get('/debug/parent', (req, res) => {
+	res.json({
+		message: 'Parent routes are available',
+		protectedRoutes: [
+			'/api/parent/profile',
+			'/api/parent/tours',
+			'/api/parent/bookings',
+			'/api/parent/schools/:schoolId/rate'
+		],
+		publicRoutes: [
+			'/api/parent/schools',
+			'/api/parent/schools/:schoolId'
+		],
+		note: 'Most routes require parent authentication and role verification'
+	});
+});
+
+
 // Basic route
 app.get('/', (req, res) => {
 	res.json({ 
@@ -238,6 +261,7 @@ app.listen(PORT, () => {
 	console.log(`🔍 Debug Collections: http://localhost:${PORT}/debug/collections`);
 	console.log(`🏫 Test Schools: http://localhost:${PORT}/debug/schools`);
 	console.log(`🔐 Test System Admin: http://localhost:${PORT}/debug/system-admin`);
+	console.log(`👥 Test Parent: http://localhost:${PORT}/debug/parent`);
 	console.log('');
 	console.log('📋 Available API endpoints:');
 	console.log('  🔐 /api/auth/login');
@@ -246,6 +270,12 @@ app.listen(PORT, () => {
 	console.log('  🏫 /api/system-admin/schools');
 	console.log('  👥 /api/system-admin/users');
 	console.log('  📈 /api/system-admin/reports');
-	console.log('  🏫 /api/school-admin-registration/register'); // ✅ NEW
+	console.log('  🏫 /api/school-admin-registration/register'); 
+	console.log('  👥 /api/parents/profile');
+	console.log('  📅 /api/parents/tours')
+	console.log('  🧾 /api/parents/bookings');
+	console.log('  🏫 /api/parents/schools');
+	console.log('  🏫 /api/parents/schools/:schoolId/rate');
+	
 	console.log('');
 });
