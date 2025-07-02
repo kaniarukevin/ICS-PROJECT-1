@@ -22,6 +22,7 @@ function App() {
 				<Routes>
 					{/* Public Home Page */}
 					<Route path="/" element={<Home />} />
+					<Route path="/home" element={<Home />} />
 
 					{/* Authentication Routes */}
 					<Route path="/login" element={<Login />} />

@@ -45,7 +45,7 @@ const Login = () => {
 				} else if (data.user.role === 'system_admin') {
 					navigate('/system-admin');
 				} else if (data.user.role === 'parent') {
-					navigate('/');
+					navigate('/home');
 				} else {
 					navigate('/');
 				}
