@@ -1,4 +1,4 @@
-// frontend/src/components/auth/SchoolAdminRegistration.jsx
+// frontend/src/components/auth/SchoolAdminRegistration.jsx (Enhanced with Fee Settings)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,11 +34,22 @@ const SchoolAdminRegistration = () => {
 		schoolEmail: '',
 		website: '',
 		
-		// Additional Info
+		// Academic Info
 		curriculum: [],
 		grades: {
 			from: '',
 			to: ''
+		},
+		
+		// Fee Structure (NEW)
+		fees: {
+			currency: 'KES',
+			tuition: {
+				minAmount: '',
+				maxAmount: '',
+				period: 'Termly'
+			},
+			registration: ''
 		},
 		
 		// Agreement
@@ -80,19 +91,48 @@ const SchoolAdminRegistration = () => {
 		'Other'
 	];
 
+	const feePeriods = [
+		'Termly',
+		'Annually', 
+		'Monthly'
+	];
+
+	const currencies = [
+		{ code: 'KES', name: 'Kenyan Shilling (KES)' },
+		{ code: 'USD', name: 'US Dollar (USD)' },
+		{ code: 'EUR', name: 'Euro (EUR)' },
+		{ code: 'GBP', name: 'British Pound (GBP)' }
+	];
+
 	// Handle input changes
 	const handleChange = (e) => {
 		const { name, value, type, checked } = e.target;
 		
 		if (name.includes('.')) {
-			const [parent, child] = name.split('.');
-			setFormData(prev => ({
-				...prev,
-				[parent]: {
-					...prev[parent],
-					[child]: value
-				}
-			}));
+			// Handle nested objects like grades.from, fees.currency, fees.tuition.minAmount
+			const parts = name.split('.');
+			if (parts.length === 2) {
+				const [parent, child] = parts;
+				setFormData(prev => ({
+					...prev,
+					[parent]: {
+						...prev[parent],
+						[child]: value
+					}
+				}));
+			} else if (parts.length === 3) {
+				const [parent, child, grandchild] = parts;
+				setFormData(prev => ({
+					...prev,
+					[parent]: {
+						...prev[parent],
+						[child]: {
+							...prev[parent][child],
+							[grandchild]: value
+						}
+					}
+				}));
+			}
 		} else if (name === 'curriculum') {
 			const updatedCurriculum = checked 
 				? [...formData.curriculum, value]
@@ -184,6 +224,22 @@ const SchoolAdminRegistration = () => {
 			if (!formData.city.trim()) newErrors.city = 'City is required';
 			if (!formData.state.trim()) newErrors.state = 'State/County is required';
 		}
+
+		if (step === 3) {
+			// Validate fee structure
+			if (formData.fees.tuition.minAmount && formData.fees.tuition.maxAmount) {
+				const minAmount = parseFloat(formData.fees.tuition.minAmount);
+				const maxAmount = parseFloat(formData.fees.tuition.maxAmount);
+				
+				if (minAmount < 0) newErrors['fees.tuition.minAmount'] = 'Minimum amount cannot be negative';
+				if (maxAmount < 0) newErrors['fees.tuition.maxAmount'] = 'Maximum amount cannot be negative';
+				if (minAmount > maxAmount) newErrors['fees.tuition.maxAmount'] = 'Maximum amount must be greater than minimum';
+			}
+			
+			if (formData.fees.registration && parseFloat(formData.fees.registration) < 0) {
+				newErrors['fees.registration'] = 'Registration fee cannot be negative';
+			}
+		}
 		
 		if (step === 4) {
 			if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
@@ -213,12 +269,27 @@ const SchoolAdminRegistration = () => {
 		setLoading(true);
 		
 		try {
+			// Prepare data for submission
+			const submissionData = {
+				...formData,
+				// Convert fee amounts to numbers
+				fees: {
+					...formData.fees,
+					tuition: {
+						...formData.fees.tuition,
+						minAmount: formData.fees.tuition.minAmount ? parseFloat(formData.fees.tuition.minAmount) : undefined,
+						maxAmount: formData.fees.tuition.maxAmount ? parseFloat(formData.fees.tuition.maxAmount) : undefined
+					},
+					registration: formData.fees.registration ? parseFloat(formData.fees.registration) : undefined
+				}
+			};
+
 			const response = await fetch('http://localhost:5000/api/school-admin-registration/register', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(formData)
+				body: JSON.stringify(submissionData)
 			});
 
 			const data = await response.json();
@@ -240,6 +311,17 @@ const SchoolAdminRegistration = () => {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	// Format currency for display
+	const formatCurrency = (amount, currency = 'KES') => {
+		if (!amount) return '';
+		const formatter = new Intl.NumberFormat('en-KE', {
+			style: 'currency',
+			currency: currency === 'KES' ? 'KES' : currency,
+			minimumFractionDigits: 0
+		});
+		return formatter.format(amount);
 	};
 
 	// Render step content
@@ -438,8 +520,13 @@ const SchoolAdminRegistration = () => {
 			case 3:
 				return (
 					<div className="step-content">
-						<h3>Contact & Academic Information</h3>
+						<h3>Contact, Academic & Fee Information</h3>
 						<div className="form-grid">
+							{/* Contact Information */}
+							<div className="section-header full-width">
+								<h4>Contact Information</h4>
+							</div>
+							
 							<div className="form-group">
 								<label htmlFor="schoolPhone">School Phone</label>
 								<input
@@ -474,6 +561,11 @@ const SchoolAdminRegistration = () => {
 									onChange={handleChange}
 									placeholder="https://www.yourschool.com"
 								/>
+							</div>
+
+							{/* Academic Information */}
+							<div className="section-header full-width">
+								<h4>Academic Information</h4>
 							</div>
 
 							<div className="form-group">
@@ -517,6 +609,146 @@ const SchoolAdminRegistration = () => {
 									))}
 								</div>
 							</div>
+
+							{/* Fee Structure */}
+							<div className="section-header full-width">
+								<h4>💰 Fee Structure</h4>
+								<p className="section-description">
+									Set your school's fee range to help parents understand your pricing structure.
+								</p>
+							</div>
+
+							<div className="form-group">
+								<label htmlFor="fees.currency">Currency</label>
+								<select
+									id="fees.currency"
+									name="fees.currency"
+									value={formData.fees.currency}
+									onChange={handleChange}
+								>
+									{currencies.map(currency => (
+										<option key={currency.code} value={currency.code}>
+											{currency.name}
+										</option>
+									))}
+								</select>
+							</div>
+
+							<div className="form-group">
+								<label htmlFor="fees.tuition.period">Fee Period</label>
+								<select
+									id="fees.tuition.period"
+									name="fees.tuition.period"
+									value={formData.fees.tuition.period}
+									onChange={handleChange}
+								>
+									{feePeriods.map(period => (
+										<option key={period} value={period}>{period}</option>
+									))}
+								</select>
+							</div>
+
+							<div className="form-group">
+								<label htmlFor="fees.tuition.minAmount">
+									Minimum Tuition Fee ({formData.fees.currency})
+								</label>
+								<input
+									type="number"
+									id="fees.tuition.minAmount"
+									name="fees.tuition.minAmount"
+									value={formData.fees.tuition.minAmount}
+									onChange={handleChange}
+									placeholder="e.g., 50000"
+									min="0"
+									step="1000"
+								/>
+								{errors['fees.tuition.minAmount'] && (
+									<span className="error">{errors['fees.tuition.minAmount']}</span>
+								)}
+								{formData.fees.tuition.minAmount && (
+									<span className="fee-preview">
+										Preview: {formatCurrency(formData.fees.tuition.minAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}
+									</span>
+								)}
+							</div>
+
+							<div className="form-group">
+								<label htmlFor="fees.tuition.maxAmount">
+									Maximum Tuition Fee ({formData.fees.currency})
+								</label>
+								<input
+									type="number"
+									id="fees.tuition.maxAmount"
+									name="fees.tuition.maxAmount"
+									value={formData.fees.tuition.maxAmount}
+									onChange={handleChange}
+									placeholder="e.g., 150000"
+									min="0"
+									step="1000"
+								/>
+								{errors['fees.tuition.maxAmount'] && (
+									<span className="error">{errors['fees.tuition.maxAmount']}</span>
+								)}
+								{formData.fees.tuition.maxAmount && (
+									<span className="fee-preview">
+										Preview: {formatCurrency(formData.fees.tuition.maxAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}
+									</span>
+								)}
+							</div>
+
+							<div className="form-group">
+								<label htmlFor="fees.registration">
+									Registration Fee ({formData.fees.currency}) <span className="optional">(Optional)</span>
+								</label>
+								<input
+									type="number"
+									id="fees.registration"
+									name="fees.registration"
+									value={formData.fees.registration}
+									onChange={handleChange}
+									placeholder="e.g., 5000"
+									min="0"
+									step="500"
+								/>
+								{errors['fees.registration'] && (
+									<span className="error">{errors['fees.registration']}</span>
+								)}
+								{formData.fees.registration && (
+									<span className="fee-preview">
+										Preview: {formatCurrency(formData.fees.registration, formData.fees.currency)} one-time
+									</span>
+								)}
+							</div>
+
+							{/* Fee Range Summary */}
+							{(formData.fees.tuition.minAmount || formData.fees.tuition.maxAmount) && (
+								<div className="form-group full-width">
+									<div className="fee-summary">
+										<h5>📊 Fee Summary</h5>
+										<div className="fee-range">
+											{formData.fees.tuition.minAmount && formData.fees.tuition.maxAmount ? (
+												<p>
+													<strong>Tuition Range:</strong> {formatCurrency(formData.fees.tuition.minAmount, formData.fees.currency)} - {formatCurrency(formData.fees.tuition.maxAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}
+												</p>
+											) : formData.fees.tuition.minAmount ? (
+												<p>
+													<strong>Minimum Tuition:</strong> {formatCurrency(formData.fees.tuition.minAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}
+												</p>
+											) : formData.fees.tuition.maxAmount ? (
+												<p>
+													<strong>Maximum Tuition:</strong> {formatCurrency(formData.fees.tuition.maxAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}
+												</p>
+											) : null}
+											
+											{formData.fees.registration && (
+												<p>
+													<strong>Registration Fee:</strong> {formatCurrency(formData.fees.registration, formData.fees.currency)} one-time
+												</p>
+											)}
+										</div>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				);
@@ -545,6 +777,26 @@ const SchoolAdminRegistration = () => {
 								<h4>Academic Information</h4>
 								<p><strong>Grade Range:</strong> {formData.grades.from} - {formData.grades.to}</p>
 								<p><strong>Curriculum:</strong> {formData.curriculum.join(', ') || 'Not specified'}</p>
+							</div>
+
+							<div className="review-group">
+								<h4>💰 Fee Structure</h4>
+								{formData.fees.tuition.minAmount || formData.fees.tuition.maxAmount ? (
+									<div>
+										{formData.fees.tuition.minAmount && formData.fees.tuition.maxAmount ? (
+											<p><strong>Tuition Range:</strong> {formatCurrency(formData.fees.tuition.minAmount, formData.fees.currency)} - {formatCurrency(formData.fees.tuition.maxAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}</p>
+										) : formData.fees.tuition.minAmount ? (
+											<p><strong>Minimum Tuition:</strong> {formatCurrency(formData.fees.tuition.minAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}</p>
+										) : (
+											<p><strong>Maximum Tuition:</strong> {formatCurrency(formData.fees.tuition.maxAmount, formData.fees.currency)} per {formData.fees.tuition.period.toLowerCase()}</p>
+										)}
+										{formData.fees.registration && (
+											<p><strong>Registration Fee:</strong> {formatCurrency(formData.fees.registration, formData.fees.currency)} one-time</p>
+										)}
+									</div>
+								) : (
+									<p>No fee information provided</p>
+								)}
 							</div>
 
 							<div className="terms-section">
@@ -587,7 +839,7 @@ const SchoolAdminRegistration = () => {
 						<div className="step-label">
 							{step === 1 && 'Personal'}
 							{step === 2 && 'School Info'}
-							{step === 3 && 'Details'}
+							{step === 3 && 'Details & Fees'}
 							{step === 4 && 'Review'}
 						</div>
 					</div>
@@ -746,10 +998,34 @@ const SchoolAdminRegistration = () => {
 					grid-column: 1 / -1;
 				}
 
+				.section-header {
+					border-bottom: 2px solid #007bff;
+					padding-bottom: 0.5rem;
+					margin: 1.5rem 0 1rem 0;
+				}
+
+				.section-header h4 {
+					color: #007bff;
+					margin: 0;
+					font-size: 1.1rem;
+				}
+
+				.section-description {
+					color: #666;
+					font-size: 0.9rem;
+					margin: 0.5rem 0 0 0;
+				}
+
 				.form-group label {
 					margin-bottom: 0.5rem;
 					font-weight: 500;
 					color: #333;
+				}
+
+				.optional {
+					color: #666;
+					font-weight: normal;
+					font-size: 0.9rem;
 				}
 
 				.form-group input,
@@ -792,6 +1068,31 @@ const SchoolAdminRegistration = () => {
 					color: #28a745;
 					font-size: 0.9rem;
 					margin-top: 0.25rem;
+				}
+
+				.fee-preview {
+					color: #007bff;
+					font-size: 0.9rem;
+					margin-top: 0.25rem;
+					font-weight: 500;
+				}
+
+				.fee-summary {
+					background: #e3f2fd;
+					border: 1px solid #007bff;
+					border-radius: 4px;
+					padding: 1rem;
+					margin-top: 1rem;
+				}
+
+				.fee-summary h5 {
+					color: #007bff;
+					margin: 0 0 0.5rem 0;
+				}
+
+				.fee-range p {
+					margin: 0.25rem 0;
+					color: #333;
 				}
 
 				.review-section {
