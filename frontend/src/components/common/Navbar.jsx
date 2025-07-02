@@ -23,7 +23,7 @@ const Navbar = () => {
 		}}>
 			<div>
 				<Link to="/dashboard" style={{ textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-					School Tour Booking
+					EduSearch
 				</Link>
 			</div>
 

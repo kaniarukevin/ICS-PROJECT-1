@@ -1,41 +1,94 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './results.css';
+
+function StarRating({ value }) {
+  const stars = [];
+  const fullStars = Math.floor(value);
+  const hasHalfStar = value - fullStars >= 0.5;
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) stars.push(<span key={i} className="star full">★</span>);
+    else if (i === fullStars && hasHalfStar) stars.push(<span key={i} className="star half">⯪</span>);
+    else stars.push(<span key={i} className="star empty">☆</span>);
+  }
+  return <div className="star-rating">{stars} <span className="rating-number">{value.toFixed(1)}</span></div>;
+}
+
+function StarFilter({ label, value, setValue }) {
+  const handleClick = (val) => {
+    setValue(value === val ? '' : val); // Toggle
+  };
+
+  return (
+    <div className="star-filter">
+      <label>{label}</label>
+      <div className="star-select">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`star ${value >= star ? 'full' : 'empty'}`}
+            onClick={() => handleClick(star)}
+            style={{ cursor: 'pointer', fontSize: '1.5rem', transition: 'transform 0.2s ease' }}
+          >
+            ★
+          </span>
+        ))}
+        {value && <span className="star-value">{value}</span>}
+      </div>
+    </div>
+  );
+}
 
 function Results() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Initialize filters from URL
   const [name, setName] = useState(searchParams.get('name') || '');
   const [schoolType, setSchoolType] = useState(searchParams.get('schoolType') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [minFee, setMinFee] = useState(searchParams.get('minFee') || '');
   const [maxFee, setMaxFee] = useState(searchParams.get('maxFee') || '');
 
+  const [overallRating, setOverallRating] = useState(searchParams.get('overallRating') || '');
+  const [academicRating, setAcademicRating] = useState(searchParams.get('academicRating') || '');
+  const [facilitiesRating, setFacilitiesRating] = useState(searchParams.get('facilitiesRating') || '');
+  const [teachersRating, setTeachersRating] = useState(searchParams.get('teachersRating') || '');
+  const [environmentRating, setEnvironmentRating] = useState(searchParams.get('environmentRating') || '');
+
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
+  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc');
+
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchSchools = async () => {
     setLoading(true);
     setError(null);
 
-    const params = {};
-    if (name) params.name = name;
-    if (schoolType) params.schoolType = schoolType;
-    if (location) params.location = location;
-    if (minFee) params.minFee = minFee;
-    if (maxFee) params.maxFee = maxFee;
+    const params = {
+      page: currentPage,
+      name,
+      schoolType,
+      location,
+      minFee,
+      maxFee,
+      overallRating,
+      academicRating,
+      facilitiesRating,
+      teachersRating,
+      environmentRating,
+      sortBy,
+      sortOrder,
+    };
 
     try {
       const res = await axios.get('http://localhost:5000/api/parents/schools', { params });
-      if (Array.isArray(res.data)) {
-        setSchools(res.data);
-      } else {
-        setSchools([]);
-        console.warn('Unexpected response format:', res.data);
-      }
+      setSchools(res.data.schools || []);
+      setTotalPages(res.data.totalPages || 1);
     } catch (err) {
       console.error(err);
       setError('Failed to load schools');
@@ -44,28 +97,31 @@ function Results() {
     }
   };
 
-  // Fetch when URL search params change
   useEffect(() => {
-    // Sync URL to local state (for interactive updates to work)
-    setName(searchParams.get('name') || '');
-    setSchoolType(searchParams.get('schoolType') || '');
-    setLocation(searchParams.get('location') || '');
-    setMinFee(searchParams.get('minFee') || '');
-    setMaxFee(searchParams.get('maxFee') || '');
-
     fetchSchools();
-  }, [searchParams.toString()]);
+  }, [searchParams.toString(), currentPage]);
 
   const handleApplyFilters = () => {
-    const newParams = {};
-
-    if (name) newParams.name = name;
-    if (schoolType) newParams.schoolType = schoolType;
-    if (location) newParams.location = location;
-    if (minFee) newParams.minFee = minFee;
-    if (maxFee) newParams.maxFee = maxFee;
-
+    const newParams = {
+      name,
+      schoolType,
+      location,
+      minFee,
+      maxFee,
+      overallRating,
+      academicRating,
+      facilitiesRating,
+      teachersRating,
+      environmentRating,
+      sortBy,
+      sortOrder,
+    };
     setSearchParams(newParams);
+    setCurrentPage(1);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleApplyFilters();
   };
 
   const handleClearFilters = () => {
@@ -74,107 +130,89 @@ function Results() {
     setLocation('');
     setMinFee('');
     setMaxFee('');
+    setOverallRating('');
+    setAcademicRating('');
+    setFacilitiesRating('');
+    setTeachersRating('');
+    setEnvironmentRating('');
+    setSortBy('createdAt');
+    setSortOrder('desc');
     setSearchParams({});
+    setCurrentPage(1);
   };
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6">Search & Filter Schools</h1>
+    <div className="results-wrapper">
+      <h1 className="results-title">Search & Filter Schools</h1>
 
-      {/* 🔍 Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border p-2 rounded"
-        />
+      <div className="sort-controls">
+        <label>Sort By:</label>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="createdAt">Newest</option>
+          <option value="ratings.overall">Overall Rating</option>
+          <option value="fees.tuition.minAmount">Lowest Fee</option>
+          <option value="name">A-Z</option>
+        </select>
 
-        <select
-          value={schoolType}
-          onChange={(e) => setSchoolType(e.target.value)}
-          className="border p-2 rounded"
-        >
+        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+          <option value="desc">Descending</option>
+          <option value="asc">Ascending</option>
+        </select>
+      </div>
+
+      <div className="filter-grid">
+        <input type="text" placeholder="Search by name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={handleKeyDown} />
+        <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)}>
           <option value="">All Types</option>
           <option value="High School">High School</option>
           <option value="TVET">TVET</option>
           <option value="University">University</option>
         </select>
+        <input type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={handleKeyDown} />
+        <input type="number" placeholder="Min Fee" value={minFee} onChange={(e) => setMinFee(e.target.value)} onKeyDown={handleKeyDown} />
+        <input type="number" placeholder="Max Fee" value={maxFee} onChange={(e) => setMaxFee(e.target.value)} onKeyDown={handleKeyDown} />
 
-        <input
-          type="text"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="border p-2 rounded"
-        />
+        <div className="rating-filters">
+          <StarFilter label="⭐ Overall Rating" value={overallRating} setValue={setOverallRating} />
+          <StarFilter label="📘 Academic Rating" value={academicRating} setValue={setAcademicRating} />
+          <StarFilter label="🏫 Facilities Rating" value={facilitiesRating} setValue={setFacilitiesRating} />
+          <StarFilter label="👩‍🏫 Teachers Rating" value={teachersRating} setValue={setTeachersRating} />
+          <StarFilter label="🌳 Environment Rating" value={environmentRating} setValue={setEnvironmentRating} />
+        </div>
 
-        <input
-          type="number"
-          placeholder="Min Fee"
-          value={minFee}
-          onChange={(e) => setMinFee(e.target.value)}
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          placeholder="Max Fee"
-          value={maxFee}
-          onChange={(e) => setMaxFee(e.target.value)}
-          className="border p-2 rounded"
-        />
-
-        <div className="flex gap-2">
-          <button
-            onClick={handleApplyFilters}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Apply
-          </button>
-          <button
-            onClick={handleClearFilters}
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Clear
-          </button>
+        <div className="filter-buttons">
+          <button onClick={handleApplyFilters}>Apply</button>
+          <button onClick={handleClearFilters}>Clear</button>
         </div>
       </div>
 
-      {/* 📋 Results */}
       {loading ? (
         <p>Loading schools...</p>
       ) : error ? (
-        <p className="text-red-600">{error}</p>
+        <p className="error-text">{error}</p>
       ) : schools.length === 0 ? (
         <p>No schools found.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {schools.map((school) => (
-            <div
-              key={school._id}
-              className="border rounded-xl shadow p-4 hover:shadow-lg transition-all"
-            >
-              <h2 className="text-xl font-semibold">{school.name}</h2>
-              <p className="text-sm text-gray-600 mb-1">
-                {school.location?.city || 'Unknown City'}, {school.location?.state || 'Unknown State'}
-              </p>
-              <p className="text-sm text-gray-500 mb-2">{school.schoolType || 'Type not specified'}</p>
-              <p className="text-sm text-gray-700 mb-1">
-                📍 {school.location?.address || 'Address not available'}
-              </p>
-              <p className="text-sm text-gray-700">
-                ⭐ {school.ratings?.overall ? school.ratings.overall.toFixed(1) : 'No rating'}
-              </p>
-              <a
-                href={`/school/${school._id}`}
-                className="inline-block mt-2 text-blue-600 hover:underline text-sm"
-              >
-                View Details
-              </a>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="results-grid">
+            {schools.map((school) => (
+              <div key={school._id} className="school-card">
+                <h2>{school.name}</h2>
+                <p>{school.location?.city || 'Unknown City'}, {school.location?.state || 'Unknown State'}</p>
+                <p>{school.schoolType || 'Type not specified'}</p>
+                <p>📍 {school.location?.address || 'Address not available'}</p>
+                <StarRating value={school.ratings?.overall || 0} />
+                <a href={`/school/${school._id}`}>View Details</a>
+              </div>
+            ))}
+          </div>
+
+          <div className="pagination">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)}>Previous</button>
+            <span>Page {currentPage} of {totalPages}</span>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)}>Next</button>
+          </div>
+        </>
       )}
     </div>
   );

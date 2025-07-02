@@ -1,138 +1,191 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import "./Home.css";
+import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './results.css';
 
-const Home = () => {
-  const [schools, setSchools] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [minFee, setMinFee] = useState("");
-  const [maxFee, setMaxFee] = useState("");
-  const navigate = useNavigate();
+function StarRating({ value }) {
+  const stars = [];
+  const fullStars = Math.floor(value);
+  const hasHalfStar = value - fullStars >= 0.5;
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) stars.push(<span key={i} className="star full">★</span>);
+    else if (i === fullStars && hasHalfStar) stars.push(<span key={i} className="star half">⯪</span>);
+    else stars.push(<span key={i} className="star empty">☆</span>);
+  }
+  return <div className="star-rating">{stars} <span className="rating-number">{value.toFixed(1)}</span></div>;
+}
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/parents/schools")
-      .then((res) => res.json())
-      .then((data) => {
-        setSchools(data);
-        const locationList = [...new Set(data.map((school) => school.location?.city).filter(Boolean))];
-        setLocations(locationList);
-      })
-      .catch((err) => console.error("Failed to fetch schools", err));
-  }, []);
-
-  const handleSearch = () => {
-    const queryParams = new URLSearchParams();
-    if (searchTerm) queryParams.append("name", searchTerm);
-    if (selectedType) queryParams.append("schoolType", selectedType);
-    if (selectedLocation) queryParams.append("location", selectedLocation);
-    if (minFee) queryParams.append("minFee", minFee);
-    if (maxFee) queryParams.append("maxFee", maxFee);
-    navigate(`/results?${queryParams.toString()}`);
-  };
-
-  const topRatedSchools = schools
-    .filter((school) => school.averageRating >= 4)
-    .sort((a, b) => b.averageRating - a.averageRating)
-    .slice(0, 5);
-
-  const handleSchoolClick = (schoolId) => {
-    navigate(`/school/${schoolId}`);
-  };
-
-  // Handle Enter key press for search
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+function StarFilter({ label, value, setValue }) {
+  const handleClick = (val) => {
+    setValue(value === val ? '' : val); // Toggle
   };
 
   return (
-    <div className="home">
-      <h1>Discover Schools in Kenya</h1>
-
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="Search by school name"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={handleKeyPress}
-        />
-
-        <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-          <option value="">Select School Type</option>
-          <option value="Primary">Primary</option>
-          <option value="Secondary">Secondary</option>
-          <option value="TVET">TVET</option>
-          <option value="College">College</option>
-          <option value="University">University</option>
-        </select>
-
-        <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}>
-          <option value="">Select Location</option>
-          {locations.map((loc, idx) => (
-            <option key={idx} value={loc}>{loc}</option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          placeholder="Min Fee"
-          value={minFee}
-          onChange={(e) => setMinFee(e.target.value)}
-          onKeyPress={handleKeyPress}
-        />
-        <input
-          type="number"
-          placeholder="Max Fee"
-          value={maxFee}
-          onChange={(e) => setMaxFee(e.target.value)}
-          onKeyPress={handleKeyPress}
-        />
-
-        <button onClick={handleSearch}>Search</button>
-      </div>
-
-      <div className="quick-buttons">
-        {["Primary", "Secondary", "TVET", "College", "University"].map((type) => (
-          <button key={type} onClick={() => {
-            setSelectedType(type);
-            navigate(`/results?schoolType=${type}`);
-          }}>
-            {type}
-          </button>
+    <div className="star-filter">
+      <label>{label}</label>
+      <div className="star-select">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`star ${value >= star ? 'full' : 'empty'}`}
+            onClick={() => handleClick(star)}
+            style={{ cursor: 'pointer', fontSize: '1.5rem', transition: 'transform 0.2s ease' }}
+          >
+            ★
+          </span>
         ))}
-      </div>
-
-      <h2>Top Rated Schools</h2>
-      <div className="school-list">
-        {topRatedSchools.length > 0 ? (
-          topRatedSchools.map((school) => (
-            <div 
-              className="school-card" 
-              key={school._id}
-              onClick={() => handleSchoolClick(school._id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <h3>{school.name}</h3>
-              <p>{school.description}</p>
-              <p><strong>Type:</strong> {school.schoolType}</p>
-              <p><strong>Location:</strong> {school.location?.city || 'Location not specified'}</p>
-              <p><strong>Rating:</strong> {school.averageRating ? school.averageRating.toFixed(1) : 'No rating'} ⭐</p>
-              <p className="click-hint">Click to view details</p>
-            </div>
-          ))
-        ) : (
-          <div className="no-schools">
-            <p>No top-rated schools available at the moment.</p>
-          </div>
-        )}
+        {value && <span className="star-value">{value}</span>}
       </div>
     </div>
   );
-};
+}
+
+function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [name, setName] = useState(searchParams.get('name') || '');
+  const [schoolType, setSchoolType] = useState(searchParams.get('schoolType') || '');
+  const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [minFee, setMinFee] = useState(searchParams.get('minFee') || '');
+  const [maxFee, setMaxFee] = useState(searchParams.get('maxFee') || '');
+  const [overallRating, setOverallRating] = useState(searchParams.get('overallRating') || '');
+
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSchools = async () => {
+    setLoading(true);
+    setError(null);
+
+    const params = {
+      page: 1,
+      limit: 5, // Only fetch top 5 schools
+      name,
+      schoolType,
+      location,
+      minFee,
+      maxFee,
+      overallRating,
+      sortBy: 'ratings.overall', // Always sort by overall rating
+      sortOrder: 'desc', // Always descending to get top schools
+    };
+
+    try {
+      const res = await axios.get('http://localhost:5000/api/parents/schools', { params });
+      const schoolData = res.data.schools || [];
+      // Ensure we only take the first 5 schools
+      setSchools(schoolData.slice(0, 5));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load schools');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchools();
+  }, [searchParams.toString()]);
+
+  const handleSearch = () => {
+    const searchParams = new URLSearchParams();
+    
+    // Only add non-empty parameters
+    if (name) searchParams.set('name', name);
+    if (schoolType) searchParams.set('schoolType', schoolType);
+    if (location) searchParams.set('location', location);
+    if (minFee) searchParams.set('minFee', minFee);
+    if (maxFee) searchParams.set('maxFee', maxFee);
+    if (overallRating) searchParams.set('overallRating', overallRating);
+    
+    navigate(`/results?${searchParams.toString()}`);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const handleClearFilters = () => {
+    setName('');
+    setSchoolType('');
+    setLocation('');
+    setMinFee('');
+    setMaxFee('');
+    setOverallRating('');
+    setSearchParams({});
+  };
+
+  return (
+    <div className="results-wrapper">
+      <div className="welcome-section">
+        <h1 className="welcome-title">Welcome to EduSearch</h1>
+        <p className="welcome-subtitle">Discover the best educational institutions for your child's future</p>
+      </div>
+
+      <div className="top-schools-section">
+        <h2 className="section-title">🏆 Top 5 Schools</h2>
+        <p className="section-description">Based on overall ratings and reviews from parents and students</p>
+      </div>
+
+      <div className="filter-grid">
+        <input type="text" placeholder="Search by name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={handleKeyDown} />
+        <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)}>
+          <option value="">All Types</option>
+          <option value="High School">High School</option>
+          <option value="TVET">TVET</option>
+          <option value="University">University</option>
+        </select>
+        <input type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={handleKeyDown} />
+        <input type="number" placeholder="Min Fee" value={minFee} onChange={(e) => setMinFee(e.target.value)} onKeyDown={handleKeyDown} />
+        <input type="number" placeholder="Max Fee" value={maxFee} onChange={(e) => setMaxFee(e.target.value)} onKeyDown={handleKeyDown} />
+
+        <div className="rating-filters">
+          <StarFilter label="⭐ Minimum Overall Rating" value={overallRating} setValue={setOverallRating} />
+        </div>
+
+        <div className="filter-buttons">
+          <button onClick={handleSearch}>🔍 Search</button>
+          <button onClick={handleClearFilters}>Clear</button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading-section">
+          <p>🔍 Finding the best schools for you...</p>
+        </div>
+      ) : error ? (
+        <div className="error-section">
+          <p className="error-text">😔 {error}</p>
+        </div>
+      ) : schools.length === 0 ? (
+        <div className="no-results-section">
+          <p>📚 No schools found matching your criteria. Try adjusting your filters!</p>
+        </div>
+      ) : (
+        <>
+          <div className="results-grid">
+            {schools.map((school, index) => (
+              <div key={school._id} className="school-card">
+                <div className="school-rank">🏅 #{index + 1}</div>
+                <h3>{school.name}</h3>
+                <p className="school-location">📍 {school.location?.city || 'Unknown City'}, {school.location?.state || 'Unknown State'}</p>
+                <p className="school-type">🏫 {school.schoolType || 'Type not specified'}</p>
+                <p className="school-address">{school.location?.address || 'Address not available'}</p>
+                <StarRating value={school.ratings?.overall || 0} />
+                <a href={`/school/${school._id}`} className="view-details-btn">View Details →</a>
+              </div>
+            ))}
+          </div>
+
+          <div className="explore-more">
+            <p>Looking for more options? <a href="/results">Explore all schools</a></p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default Home;
