@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bookingSchema = new mongoose.Schema({
   tourId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'tours', // ✅ match the model name used in `Tour`
+    ref: 'tours',
     required: true
   },
   schoolId: {
@@ -16,10 +16,23 @@ const bookingSchema = new mongoose.Schema({
     ref: 'users',
     required: true
   },
+  numberOfGuests: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'cancelled'],
+    default: 'pending'
+  },
+  adminNotes: String,
+  confirmedAt: Date,
+  cancelledAt: Date,
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-module.exports = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
+module.exports = mongoose.models.Booking || mongoose.model('bookings', bookingSchema);

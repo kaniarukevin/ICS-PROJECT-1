@@ -78,18 +78,55 @@ const SchoolAdminRegistration = () => {
 	];
 
 	const kenyanStates = [
-		'Nairobi County',
-		'Mombasa County',
-		'Kisumu County',
-		'Nakuru County',
-		'Eldoret',
-		'Machakos County',
-		'Meru County',
-		'Nyeri County',
-		'Kiambu County',
-		'Thika',
-		'Other'
-	];
+  'Mombasa',
+  'Kwale',
+  'Kilifi',
+  'Tana River',
+  'Lamu',
+  'Taita Taveta',
+  'Garissa',
+  'Wajir',
+  'Mandera',
+  'Marsabit',
+  'Isiolo',
+  'Meru',
+  'Tharaka-Nithi',
+  'Embu',
+  'Kitui',
+  'Machakos',
+  'Makueni',
+  'Nyandarua',
+  'Nyeri',
+  'Kirinyaga',
+  'Murang\'a',
+  'Kiambu',
+  'Turkana',
+  'West Pokot',
+  'Samburu',
+  'Trans Nzoia',
+  'Uasin Gishu',
+  'Elgeyo-Marakwet',
+  'Nandi',
+  'Baringo',
+  'Laikipia',
+  'Nakuru',
+  'Narok',
+  'Kajiado',
+  'Kericho',
+  'Bomet',
+  'Kakamega',
+  'Vihiga',
+  'Bungoma',
+  'Busia',
+  'Siaya',
+  'Kisumu',
+  'Homa Bay',
+  'Migori',
+  'Kisii',
+  'Nyamira',
+  'Nairobi'
+];
+
 
 	const feePeriods = [
 		'Termly',
@@ -472,21 +509,21 @@ const SchoolAdminRegistration = () => {
 							</div>
 
 							<div className="form-group">
-								<label htmlFor="city">City *</label>
+								<label htmlFor="city">Town *</label>
 								<input
 									type="text"
 									id="city"
 									name="city"
 									value={formData.city}
 									onChange={handleChange}
-									placeholder="City"
+									placeholder="Town"
 									required
 								/>
 								{errors.city && <span className="error">{errors.city}</span>}
 							</div>
 
 							<div className="form-group">
-								<label htmlFor="state">State/County *</label>
+								<label htmlFor="state">County *</label>
 								<select
 									id="state"
 									name="state"
@@ -494,7 +531,7 @@ const SchoolAdminRegistration = () => {
 									onChange={handleChange}
 									required
 								>
-									<option value="">Select state/county</option>
+									<option value="">Select county</option>
 									{kenyanStates.map(state => (
 										<option key={state} value={state}>{state}</option>
 									))}

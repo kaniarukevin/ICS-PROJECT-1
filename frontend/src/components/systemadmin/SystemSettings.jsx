@@ -56,7 +56,7 @@ const SystemSettings = () => {
 	const fetchSystemStats = async () => {
 		try {
 			// This would typically fetch real system stats from an API
-			const startTime = Date.now() - (Math.random() * 86400000 * 7); // Random uptime up to 7 days
+			const startTime = Date.now() - (Math.random() * 86400000 * 7); 
 			const uptime = Math.floor((Date.now() - startTime) / (1000 * 60 * 60 * 24));
 			
 			setSystemStats({

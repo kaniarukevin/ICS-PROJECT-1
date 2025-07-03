@@ -60,23 +60,22 @@ const getMyBookings = async (req, res) => {
     }
 };
 
-// ✅ Book a tour (prevent overbooking)
 const bookTour = async (req, res) => {
   try {
-    const { tourId, schoolId } = req.body;
+    const { tourId, schoolId, numberOfGuests = 1 } = req.body;
 
     const tour = await Tour.findById(tourId);
     if (!tour) return res.status(404).json({ message: 'Tour not found' });
 
-    if (tour.currentBookings >= tour.maxCapacity) {
-      return res.status(400).json({ message: 'Tour is fully booked' });
+    const availableSpots = tour.maxCapacity - (tour.currentBookings || 0);
+    if (numberOfGuests > availableSpots) {
+      return res.status(400).json({ message: 'Not enough available spots' });
     }
 
     const existingBooking = await Booking.findOne({
       parentId: req.user._id,
-      tourId,
+      tourId
     });
-
     if (existingBooking) {
       return res.status(400).json({ message: 'You have already booked this tour' });
     }
@@ -84,37 +83,50 @@ const bookTour = async (req, res) => {
     const booking = new Booking({
       tourId,
       schoolId,
-      parentId: req.user._id
+      parentId: req.user._id,
+      numberOfGuests,
+      status: 'pending'
     });
+
     await booking.save();
 
-    // Increment current bookings
-    tour.currentBookings += 1;
-    await tour.save();
-
-    res.status(201).json({ message: 'Tour booked successfully', booking });
+    res.status(201).json({ message: 'Booking request sent and awaiting approval', booking });
   } catch (error) {
     res.status(500).json({ message: 'Booking failed', error: error.message });
   }
 };
 
-// ❌ Cancel a booking
+
+// ❌ Cancel booking (parent side - before 2 days)
 const cancelBooking = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
+  try {
+    const { bookingId } = req.params;
 
-        const booking = await Booking.findOneAndDelete({
-            _id: bookingId,
-            parentId: req.user._id
-        });
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      parentId: req.user._id
+    }).populate('tourId');
 
-        if (!booking) return res.status(404).json({ message: 'Booking not found or already cancelled' });
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-        res.json({ message: 'Booking cancelled', booking });
-    } catch (error) {
-        res.status(500).json({ message: 'Cancel failed', error: error.message });
+    const tourDate = new Date(booking.tourId.date);
+    const now = new Date();
+
+    const diffInDays = (tourDate - now) / (1000 * 60 * 60 * 24);
+    if (diffInDays < 2) {
+      return res.status(400).json({ message: 'Cancellations must be done at least 2 days before the tour' });
     }
+
+    booking.status = 'cancelled';
+    booking.cancelledAt = now;
+    await booking.save();
+
+    res.json({ message: 'Booking cancelled successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Cancel failed', error: error.message });
+  }
 };
+
 
 // 🌍 Public: Get all verified schools (with filters)
  const getAllSchools = async (req, res) => {

@@ -13,6 +13,7 @@ import RegisterSchoolAdmin from './pages/RegisterSchoolAdmin';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Navbar from './components/common/Navbar';
 import Results from './pages/results';
+// import MyBookings from './pages/MyBookings';
 
 function App() {
 	return (
@@ -34,12 +35,12 @@ function App() {
 
 					 <Route path='/results' element={<Results />} />
 
-					{/* Parent Dashboard */}
-					<Route path="/dashboard" element={
+					{/* Parent Dashboard
+					<Route path="/my-bookings" element={
 						<ProtectedRoute requiredRole="parent">
-							<Dashboard />
+							<MyBookings />
 						</ProtectedRoute>
-					} />
+					} /> */}
 
 					{/* School Admin Portal */}
 					<Route path="/school-admin/*" element={

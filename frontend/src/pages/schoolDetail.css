@@ -1,122 +1,139 @@
-/* Container & Base */
+/* Layout */
 .school-details-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem 2rem;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fdfdfd;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   font-family: 'Segoe UI', sans-serif;
-  color: #333;
-  background: #fdfdfd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 /* Headings */
 .school-details-container h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
+  font-size: 2.5rem;
+  color: #222;
+  margin-bottom: 10px;
 }
 
 .school-details-container h3 {
-  margin-top: 1.5rem;
-  font-size: 1.3rem;
-  color: #34495e;
-  border-bottom: 2px solid #3498db;
-  display: inline-block;
+  font-size: 1.5rem;
+  color: #333;
+  margin: 30px 0 15px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 6px;
 }
 
-/* Tour List */
+/* Text Elements */
+.school-details-container p,
+.school-details-container li,
+.school-details-container label {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+}
+
+/* Lists */
 .school-details-container ul {
-  list-style: none;
-  padding: 0;
+  padding-left: 20px;
+  margin-bottom: 15px;
 }
 
-.school-details-container li {
-  margin: 0.8rem 0;
-  padding: 0.8rem;
-  background: #fafafa;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+.ratings-list li {
+  margin-bottom: 4px;
 }
 
-.school-details-container li button {
-  margin-top: 0.4rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: #3498db;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.school-details-container li button:hover:not(:disabled) {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-}
-
-.school-details-container li button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-/* Compare & Rating Sections */
-.compare-section,
+/* Rate Section */
 .rate-section {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #f7f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  margin-top: 10px;
 }
 
-.compare-section button,
-.rate-section button {
-  background-color: #2ecc71;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+.rate-section div {
+  margin-bottom: 10px;
 }
 
-.compare-section button:hover,
-.rate-section button:hover {
-  background-color: #28b463;
-  transform: translateY(-2px);
+.rate-section label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
-/* Rating Form */
 .rate-section select,
 .rate-section textarea {
-  display: block;
   width: 100%;
-  margin: 0.5rem 0 1rem;
-  padding: 0.6rem;
+  padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 .rate-section textarea {
-  min-height: 80px;
   resize: vertical;
+  min-height: 100px;
+}
+
+/* Buttons */
+button {
+  background-color: #0d6efd;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  margin-top: 8px;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #0b5ed7;
+}
+
+/* Tour Section */
+.school-details-container li {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #ccc;
+}
+
+.school-details-container select {
+  margin-left: 10px;
+  padding: 6px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 /* Feedback Message */
 .feedback {
-  margin-top: 1rem;
-  padding: 0.6rem;
-  background-color: #e8f8f5;
-  border-left: 4px solid #2ecc71;
-  color: #1e8449;
-  border-radius: 4px;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #e6f4ea;
+  color: #247144;
+  font-weight: bold;
+  border: 1px solid #b6e0c0;
 }
 
-/* Responsive tweaks */
-@media (max-width: 600px) {
+/* Responsive */
+@media screen and (max-width: 600px) {
   .school-details-container {
-    padding: 1rem;
+    padding: 20px;
+  }
+
+  .school-details-container h1 {
+    font-size: 2rem;
+  }
+
+  .school-details-container h3 {
+    font-size: 1.25rem;
+  }
+
+  button {
+    width: 100%;
+    text-align: center;
   }
 }
