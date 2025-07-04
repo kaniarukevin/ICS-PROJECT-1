@@ -1,69 +1,52 @@
-//backend/controllers/systemAdminController.js
-const User = require('../models/user');
-const School = require('../models/School');
+// backend/controllers/systemAdminController.js
+console.log('🔄 Loading System Admin Controller...');
+
+// Import models with error handling
 const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
+const School = require('../models/School');
+const User = require('../models/user'); // lowercase to match your pattern
+const mongoose = require('mongoose');
 
-// Get system admin dashboard data
+console.log('✅ All models imported successfully');
+
+// Dashboard - Get system overview
 const getDashboard = async (req, res) => {
 	try {
-		console.log('📊 Dashboard API called by user:', req.user.name);
-		
-		// Get basic counts
-		const totalSchools = await School.countDocuments();
-		console.log(`🏫 Total schools: ${totalSchools}`);
-		
-		const verifiedSchools = await School.countDocuments({
-			$or: [{ isVerified: true }, { isApproved: true }]
-		});
-		console.log(`✅ Verified schools: ${verifiedSchools}`);
-		
-		const pendingSchools = totalSchools - verifiedSchools;
-		console.log(`⏳ Pending schools: ${pendingSchools}`);
-		
-		const totalUsers = await User.countDocuments();
-		console.log(`👥 Total users: ${totalUsers}`);
-		
-		let totalTours = 0;
-		let totalBookings = 0;
-		
-		try {
-			totalTours = await Tour.countDocuments();
-			console.log(`🎯 Total tours: ${totalTours}`);
-		} catch (error) {
-			console.log('⚠️ Tour model not found, setting to 0');
-		}
-		
-		try {
-			totalBookings = await Booking.countDocuments();
-			console.log(`📅 Total bookings: ${totalBookings}`);
-		} catch (error) {
-			console.log('⚠️ Booking model not found, setting to 0');
-		}
+		console.log('📊 System Admin Dashboard requested by user:', req.user.id);
 
-		// School types breakdown
+		// Get school statistics
+		const totalSchools = await School.countDocuments();
+		const verifiedSchools = await School.countDocuments({ isVerified: true });
+		const pendingSchools = await School.countDocuments({ isVerified: false });
+
+		// Get user statistics
+		const totalUsers = await User.countDocuments();
+
+		// Get tour statistics
+		const totalTours = await Tour.countDocuments();
+
+		// Get booking statistics
+		const totalBookings = await Booking.countDocuments();
+
+		// Get school types distribution
 		const schoolTypes = await School.aggregate([
 			{
 				$group: {
 					_id: '$schoolType',
 					count: { $sum: 1 }
 				}
-			}
+			},
+			{ $sort: { count: -1 } }
 		]);
-		console.log('🏷️ School types:', schoolTypes);
 
-		// Top rated schools
+		// Get top rated schools
 		const topRatedSchools = await School.find({
-			$or: [
-				{ averageRating: { $exists: true, $ne: null } }, 
-				{ 'ratings.overall': { $exists: true, $ne: null } }
-			]
+			averageRating: { $exists: true, $gt: 0 }
 		})
-		.sort({ averageRating: -1, 'ratings.overall': -1 })
+		.sort({ averageRating: -1 })
 		.limit(5)
-		.select('name averageRating ratings.overall location.city city');
-		
-		console.log(`⭐ Top rated schools found: ${topRatedSchools.length}`);
+		.select('name location averageRating ratings');
 
 		const dashboardData = {
 			totalSchools,
@@ -75,103 +58,132 @@ const getDashboard = async (req, res) => {
 			schoolTypes,
 			topRatedSchools
 		};
-		
-		console.log('📤 Sending dashboard data:', dashboardData);
-		res.json(dashboardData);
-		
-	} catch (error) {
-		console.error('❌ Dashboard error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message,
-			stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+
+		console.log('✅ System Dashboard data prepared:', {
+			totalSchools,
+			verifiedSchools,
+			totalUsers,
+			totalTours,
+			totalBookings
 		});
+		
+		res.json(dashboardData);
+
+	} catch (error) {
+		console.error('❌ System Dashboard error:', error);
+		res.status(500).json({ message: 'Error fetching dashboard data', error: error.message });
 	}
 };
 
-// Get all schools
+// Get all schools with management info
 const getSchools = async (req, res) => {
 	try {
-		console.log('🏫 Get schools API called by user:', req.user.name);
-		
-		const schools = await School.find()
-			.populate('adminId', 'name email')
+		console.log('🏫 Getting all schools for system admin');
+
+		const schools = await School.find({})
+			.populate('adminId', 'name email phone isActive')
 			.sort({ createdAt: -1 });
-		
-		console.log(`📊 Found ${schools.length} schools`);
-		res.json(schools);
-		
+
+		// Add booking counts for each school
+		const schoolsWithStats = await Promise.all(
+			schools.map(async (school) => {
+				const bookingCount = await Booking.countDocuments({ schoolId: school._id });
+				const tourCount = await Tour.countDocuments({ schoolId: school._id });
+				
+				return {
+					...school.toObject(),
+					statistics: {
+						totalBookings: bookingCount,
+						totalTours: tourCount
+					}
+				};
+			})
+		);
+
+		console.log(`✅ Retrieved ${schools.length} schools with statistics`);
+		res.json(schoolsWithStats);
+
 	} catch (error) {
 		console.error('❌ Get schools error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
+		res.status(500).json({ message: 'Error fetching schools', error: error.message });
 	}
 };
 
-// Get all users
-const getUsers = async (req, res) => {
-	try {
-		console.log('👥 Get users API called by user:', req.user.name);
-		
-		const users = await User.find()
-			.populate('schoolId', 'name location.city city')
-			.select('-password')
-			.sort({ createdAt: -1 });
-		
-		console.log(`📊 Found ${users.length} users`);
-		res.json(users);
-		
-	} catch (error) {
-		console.error('❌ Get users error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
-	}
-};
-
-// Update school verification status
+// Update school approval status
 const updateSchoolApproval = async (req, res) => {
 	try {
 		const { schoolId } = req.params;
-		const { isApproved, isVerified } = req.body;
-		
-		console.log(`🏫 Updating school ${schoolId} approval:`, { isApproved, isVerified });
+		const { isVerified, isActive } = req.body;
 
-		// Update both fields for backward compatibility
-		const updateData = {};
-		if (isApproved !== undefined) updateData.isApproved = isApproved;
-		if (isVerified !== undefined) updateData.isVerified = isVerified;
-		
-		// If only one is provided, set both to the same value
-		if (isApproved !== undefined && isVerified === undefined) {
-			updateData.isVerified = isApproved;
-		}
-		if (isVerified !== undefined && isApproved === undefined) {
-			updateData.isApproved = isVerified;
-		}
+		console.log(`🔄 Updating school approval for ID: ${schoolId}`);
 
-		const school = await School.findByIdAndUpdate(
-			schoolId,
-			updateData,
-			{ new: true }
-		);
-
+		const school = await School.findById(schoolId);
 		if (!school) {
 			return res.status(404).json({ message: 'School not found' });
 		}
 
-		console.log(`✅ School ${schoolId} updated successfully`);
+		// Update fields
+		if (typeof isVerified === 'boolean') {
+			school.isVerified = isVerified;
+		}
+		if (typeof isActive === 'boolean') {
+			school.isActive = isActive;
+		}
+
+		school.updatedAt = new Date();
+		await school.save();
+
+		console.log(`✅ School approval updated: ${school.name}`);
 		res.json(school);
-		
+
 	} catch (error) {
 		console.error('❌ Update school approval error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
+		res.status(500).json({ message: 'Error updating school approval', error: error.message });
+	}
+};
+
+// Get all users with role info
+const getUsers = async (req, res) => {
+	try {
+		console.log('👥 Getting all users for system admin');
+
+		const users = await User.find({})
+			.select('-password') // Exclude password
+			.populate('schoolId', 'name schoolType')
+			.sort({ createdAt: -1 });
+
+		// Add activity stats for each user
+		const usersWithStats = await Promise.all(
+			users.map(async (user) => {
+				let additionalStats = {};
+
+				if (user.role === 'parent') {
+					const bookingCount = await Booking.countDocuments({ parentId: user._id });
+					additionalStats.totalBookings = bookingCount;
+				} else if (user.role === 'school_admin') {
+					const school = await School.findOne({ adminId: user._id });
+					if (school) {
+						const tourCount = await Tour.countDocuments({ schoolId: school._id });
+						const bookingCount = await Booking.countDocuments({ schoolId: school._id });
+						additionalStats.schoolName = school.name;
+						additionalStats.totalTours = tourCount;
+						additionalStats.totalBookings = bookingCount;
+					}
+				}
+
+				return {
+					...user.toObject(),
+					statistics: additionalStats
+				};
+			})
+		);
+
+		console.log(`✅ Retrieved ${users.length} users with statistics`);
+		res.json(usersWithStats);
+
+	} catch (error) {
+		console.error('❌ Get users error:', error);
+		res.status(500).json({ message: 'Error fetching users', error: error.message });
 	}
 };
 
@@ -179,210 +191,381 @@ const updateSchoolApproval = async (req, res) => {
 const updateUserStatus = async (req, res) => {
 	try {
 		const { userId } = req.params;
-		const { isActive } = req.body;
-		
-		console.log(`👥 Updating user ${userId} status:`, { isActive });
+		const { isActive, isVerified } = req.body;
 
-		const user = await User.findByIdAndUpdate(
-			userId,
-			{ isActive },
-			{ new: true }
-		).select('-password');
+		console.log(`🔄 Updating user status for ID: ${userId}`);
 
+		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
-		console.log(`✅ User ${userId} updated successfully`);
-		res.json(user);
-		
+		// Update fields
+		if (typeof isActive === 'boolean') {
+			user.isActive = isActive;
+		}
+		if (typeof isVerified === 'boolean') {
+			user.isVerified = isVerified;
+		}
+
+		user.updatedAt = new Date();
+		await user.save();
+
+		console.log(`✅ User status updated: ${user.name}`);
+		res.json({ ...user.toObject(), password: undefined }); // Exclude password
+
 	} catch (error) {
 		console.error('❌ Update user status error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
+		res.status(500).json({ message: 'Error updating user status', error: error.message });
 	}
 };
 
-// Get system reports
+// Get comprehensive reports - THIS IS THE MAIN REPORTS FUNCTION
 const getReports = async (req, res) => {
 	try {
-		console.log('📊 Get reports API called by user:', req.user.name);
-		
-		// Initialize empty data
-		let bookingsByMonth = [];
-		let schoolsByStatus = [];
-		let schoolsByType = [];
-		let usersByRole = [];
-		let ratingStats = {};
-		let geographicDistribution = [];
+		console.log('📈 Generating comprehensive system reports');
 
-		// Get schools by verification status
-		try {
-			schoolsByStatus = await School.aggregate([
-				{
-					$group: {
-						_id: {
-							$cond: [
-								{ $or: [{ $eq: ['$isVerified', true] }, { $eq: ['$isApproved', true] }] },
-								'Verified',
-								'Unverified'
-							]
-						},
-						count: { $sum: 1 }
-					}
+		// 1. Bookings by Month (last 12 months)
+		const twelveMonthsAgo = new Date();
+		twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+		const bookingsByMonth = await Booking.aggregate([
+			{
+				$match: {
+					createdAt: { $gte: twelveMonthsAgo }
 				}
-			]);
-		} catch (error) {
-			console.log('⚠️ Error getting schools by status:', error.message);
-		}
-
-		// Get schools by type
-		try {
-			schoolsByType = await School.aggregate([
-				{
-					$group: {
-						_id: '$schoolType',
-						count: { $sum: 1 }
-					}
+			},
+			{
+				$group: {
+					_id: {
+						year: { $year: '$createdAt' },
+						month: { $month: '$createdAt' }
+					},
+					count: { $sum: 1 }
 				}
-			]);
-		} catch (error) {
-			console.log('⚠️ Error getting schools by type:', error.message);
-		}
+			},
+			{
+				$sort: { '_id.year': 1, '_id.month': 1 }
+			}
+		]);
 
-		// Get users by role
-		try {
-			usersByRole = await User.aggregate([
-				{
-					$group: {
-						_id: '$role',
-						count: { $sum: 1 }
-					}
+		// 2. Schools by Verification Status
+		const schoolsByStatus = await School.aggregate([
+			{
+				$group: {
+					_id: { $cond: [{ $eq: ['$isVerified', true] }, 'Verified', 'Pending'] },
+					count: { $sum: 1 }
 				}
-			]);
-		} catch (error) {
-			console.log('⚠️ Error getting users by role:', error.message);
-		}
+			}
+		]);
 
-		// Get average ratings
-		try {
-			const ratingResults = await School.aggregate([
-				{
-					$match: {
-						$or: [
-							{ averageRating: { $exists: true, $ne: null } },
-							{ 'ratings.overall': { $exists: true, $ne: null } }
-						]
-					}
-				},
-				{
-					$group: {
-						_id: null,
-						avgOverall: { 
-							$avg: { 
-								$ifNull: ['$averageRating', '$ratings.overall'] 
-							} 
-						},
-						avgAcademic: { $avg: '$ratings.academic' },
-						avgFacilities: { $avg: '$ratings.facilities' },
-						avgTeachers: { $avg: '$ratings.teachers' },
-						avgEnvironment: { $avg: '$ratings.environment' },
-						totalRated: { $sum: 1 }
-					}
+		// 3. Schools by Type
+		const schoolsByType = await School.aggregate([
+			{
+				$group: {
+					_id: '$schoolType',
+					count: { $sum: 1 }
 				}
-			]);
-			ratingStats = ratingResults[0] || {};
-		} catch (error) {
-			console.log('⚠️ Error getting rating stats:', error.message);
-		}
+			},
+			{ $sort: { count: -1 } }
+		]);
 
-		// Get geographic distribution
-		try {
-			geographicDistribution = await School.aggregate([
-				{
-					$group: {
-						_id: {
-							$ifNull: ['$location.state', '$state']
-						},
-						count: { $sum: 1 }
-					}
-				},
-				{ $sort: { count: -1 } }
-			]);
-		} catch (error) {
-			console.log('⚠️ Error getting geographic distribution:', error.message);
-		}
+		// 4. Users by Role
+		const usersByRole = await User.aggregate([
+			{
+				$group: {
+					_id: '$role',
+					count: { $sum: 1 }
+				}
+			},
+			{ $sort: { count: -1 } }
+		]);
 
-		// Try to get booking data if Booking model exists
-		try {
-			bookingsByMonth = await Booking.aggregate([
-				{
-					$group: {
-						_id: {
-							year: { $year: '$createdAt' },
-							month: { $month: '$createdAt' }
-						},
-						count: { $sum: 1 }
-					}
-				},
-				{ $sort: { '_id.year': -1, '_id.month': -1 } },
-				{ $limit: 12 }
-			]);
-		} catch (error) {
-			console.log('⚠️ Booking model not available, skipping booking stats');
-		}
+		// 5. Rating Statistics
+		const ratingStats = await School.aggregate([
+			{
+				$match: {
+					averageRating: { $exists: true, $gt: 0 }
+				}
+			},
+			{
+				$group: {
+					_id: null,
+					avgOverall: { $avg: '$averageRating' },
+					avgAcademic: { $avg: '$ratings.academic' },
+					avgFacilities: { $avg: '$ratings.facilities' },
+					avgTeachers: { $avg: '$ratings.teachers' },
+					avgEnvironment: { $avg: '$ratings.environment' },
+					totalRated: { $sum: 1 },
+					maxRating: { $max: '$averageRating' },
+					minRating: { $min: '$averageRating' }
+				}
+			}
+		]);
+
+		// 6. Geographic Distribution
+		const geographicDistribution = await School.aggregate([
+			{
+				$group: {
+					_id: '$location.city',
+					count: { $sum: 1 }
+				}
+			},
+			{ $sort: { count: -1 } },
+			{ $limit: 20 }
+		]);
+
+		// 7. Tour Performance
+		const tourPerformance = await Tour.aggregate([
+			{
+				$lookup: {
+					from: 'bookings',
+					localField: '_id',
+					foreignField: 'tourId',
+					as: 'bookings'
+				}
+			},
+			{
+				$group: {
+					_id: null,
+					totalTours: { $sum: 1 },
+					toursWithBookings: {
+						$sum: { $cond: [{ $gt: [{ $size: '$bookings' }, 0] }, 1, 0] }
+					},
+					avgBookingsPerTour: { $avg: { $size: '$bookings' } }
+				}
+			}
+		]);
+
+		// 8. Booking Status Distribution
+		const bookingStatusDistribution = await Booking.aggregate([
+			{
+				$group: {
+					_id: '$status',
+					count: { $sum: 1 }
+				}
+			}
+		]);
+
+		// 9. School Fee Statistics
+		const feeStats = await School.aggregate([
+			{
+				$match: {
+					'fees.tuition.minAmount': { $exists: true, $gt: 0 }
+				}
+			},
+			{
+				$group: {
+					_id: '$fees.currency',
+					avgMinFee: { $avg: '$fees.tuition.minAmount' },
+					avgMaxFee: { $avg: '$fees.tuition.maxAmount' },
+					minFee: { $min: '$fees.tuition.minAmount' },
+					maxFee: { $max: '$fees.tuition.maxAmount' },
+					schoolCount: { $sum: 1 }
+				}
+			}
+		]);
+
+		// 10. Recent Activity Summary (last 30 days)
+		const thirtyDaysAgo = new Date();
+		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+		const recentActivity = {
+			newSchools: await School.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+			newUsers: await User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+			newBookings: await Booking.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+			newTours: await Tour.countDocuments({ createdAt: { $gte: thirtyDaysAgo } })
+		};
+
+		// 11. Summary totals
+		const summary = {
+			totalSchools: await School.countDocuments(),
+			totalUsers: await User.countDocuments(),
+			totalTours: await Tour.countDocuments(),
+			totalBookings: await Booking.countDocuments()
+		};
 
 		const reportsData = {
 			bookingsByMonth,
 			schoolsByStatus,
 			schoolsByType,
 			usersByRole,
-			ratingStats,
-			geographicDistribution
+			ratingStats: ratingStats[0] || {},
+			geographicDistribution,
+			tourPerformance: tourPerformance[0] || {},
+			bookingStatusDistribution,
+			feeStats,
+			recentActivity,
+			summary,
+			generatedAt: new Date()
 		};
 
-		console.log('📊 Reports data generated successfully');
-		res.json(reportsData);
+		console.log('✅ Comprehensive reports generated successfully');
+		console.log('📊 Report summary:', {
+			schoolsByType: schoolsByType.length,
+			usersByRole: usersByRole.length,
+			bookingsByMonth: bookingsByMonth.length,
+			geographicDistribution: geographicDistribution.length
+		});
 		
+		res.json(reportsData);
+
 	} catch (error) {
 		console.error('❌ Get reports error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
+		res.status(500).json({ message: 'Error generating reports', error: error.message });
 	}
 };
 
-// Get all bookings (placeholder)
+// Get all bookings across the platform
 const getAllBookings = async (req, res) => {
 	try {
-		console.log('📅 Get all bookings API called by user:', req.user.name);
+		console.log('📅 Getting all bookings for system admin');
+
+		const { status, schoolId, limit = 50, page = 1 } = req.query;
 		
-		// Try to get bookings if model exists
-		try {
-			const bookings = await Booking.find()
-				.populate('parentId', 'name email')
-				.populate('schoolId', 'name location.city city location.state state')
-				.populate('tourId', 'title date')
-				.sort({ createdAt: -1 });
-			
-			console.log(`📊 Found ${bookings.length} bookings`);
-			res.json(bookings);
-		} catch (error) {
-			console.log('⚠️ Booking model not available, returning empty array');
-			res.json([]);
+		// Build query
+		let query = {};
+		if (status && status !== 'all') {
+			query.status = status;
 		}
-		
+		if (schoolId) {
+			query.schoolId = schoolId;
+		}
+
+		const skip = (parseInt(page) - 1) * parseInt(limit);
+
+		const bookings = await Booking.find(query)
+			.populate('tourId', 'title date startTime endTime')
+			.populate('parentId', 'name email phone')
+			.populate('schoolId', 'name location')
+			.sort({ createdAt: -1 })
+			.limit(parseInt(limit))
+			.skip(skip);
+
+		const totalBookings = await Booking.countDocuments(query);
+
+		console.log(`✅ Retrieved ${bookings.length} bookings (page ${page})`);
+		res.json({
+			bookings,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages: Math.ceil(totalBookings / parseInt(limit)),
+				totalBookings,
+				hasMore: skip + bookings.length < totalBookings
+			}
+		});
+
 	} catch (error) {
 		console.error('❌ Get all bookings error:', error);
-		res.status(500).json({ 
-			message: 'Server error', 
-			error: error.message 
-		});
+		res.status(500).json({ message: 'Error fetching bookings', error: error.message });
 	}
 };
+
+// Advanced Analytics (additional endpoint)
+const getAdvancedAnalytics = async (req, res) => {
+	try {
+		console.log('📊 Generating advanced analytics');
+
+		// Platform Growth Metrics
+		const growthMetrics = await User.aggregate([
+			{
+				$group: {
+					_id: {
+						year: { $year: '$createdAt' },
+						month: { $month: '$createdAt' },
+						role: '$role'
+					},
+					count: { $sum: 1 }
+				}
+			},
+			{ $sort: { '_id.year': 1, '_id.month': 1 } }
+		]);
+
+		// School Performance Rankings
+		const schoolPerformance = await School.aggregate([
+			{
+				$lookup: {
+					from: 'bookings',
+					localField: '_id',
+					foreignField: 'schoolId',
+					as: 'bookings'
+				}
+			},
+			{
+				$lookup: {
+					from: 'tours',
+					localField: '_id',
+					foreignField: 'schoolId',
+					as: 'tours'
+				}
+			},
+			{
+				$project: {
+					name: 1,
+					schoolType: 1,
+					averageRating: 1,
+					bookingCount: { $size: '$bookings' },
+					tourCount: { $size: '$tours' },
+					conversionRate: {
+						$cond: [
+							{ $gt: [{ $size: '$tours' }, 0] },
+							{ $divide: [{ $size: '$bookings' }, { $size: '$tours' }] },
+							0
+						]
+					}
+				}
+			},
+			{ $sort: { bookingCount: -1 } },
+			{ $limit: 20 }
+		]);
+
+		// Revenue Potential Analysis (based on fee structures)
+		const revenueAnalysis = await School.aggregate([
+			{
+				$match: {
+					'fees.tuition.minAmount': { $exists: true, $gt: 0 }
+				}
+			},
+			{
+				$lookup: {
+					from: 'bookings',
+					localField: '_id',
+					foreignField: 'schoolId',
+					as: 'bookings'
+				}
+			},
+			{
+				$project: {
+					name: 1,
+					minFee: '$fees.tuition.minAmount',
+					maxFee: '$fees.tuition.maxAmount',
+					currency: '$fees.currency',
+					bookingCount: { $size: '$bookings' },
+					potentialMinRevenue: {
+						$multiply: ['$fees.tuition.minAmount', { $size: '$bookings' }]
+					},
+					potentialMaxRevenue: {
+						$multiply: ['$fees.tuition.maxAmount', { $size: '$bookings' }]
+					}
+				}
+			},
+			{ $sort: { potentialMaxRevenue: -1 } }
+		]);
+
+		res.json({
+			growthMetrics,
+			schoolPerformance,
+			revenueAnalysis,
+			generatedAt: new Date()
+		});
+
+	} catch (error) {
+		console.error('❌ Advanced analytics error:', error);
+		res.status(500).json({ message: 'Error generating advanced analytics', error: error.message });
+	}
+};
+
+console.log('✅ System Admin Controller loaded successfully');
 
 module.exports = {
 	getDashboard,
@@ -391,5 +574,6 @@ module.exports = {
 	getUsers,
 	updateUserStatus,
 	getReports,
-	getAllBookings
+	getAllBookings,
+	getAdvancedAnalytics
 };

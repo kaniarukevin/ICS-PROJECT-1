@@ -1,116 +1,119 @@
-// backend/routes/systemAdmin.js (Debug Version - Use if still having issues)
+// backend/routes/systemAdmin.js
 const express = require('express');
 const router = express.Router();
 
-// Import middleware with error handling
+console.log('🔄 Loading System Admin routes...');
+
+// Import middleware with proper error handling
 let authMiddleware, requireRole;
 
 try {
 	const authModule = require('../middleware/authMiddleware');
-	// Handle different export patterns
-	if (typeof authModule === 'function') {
-		authMiddleware = authModule;
-	} else if (authModule.authMiddleware) {
-		authMiddleware = authModule.authMiddleware;
-	} else {
-		console.error('❌ authMiddleware not found in auth module');
+	authMiddleware = authModule.authMiddleware;
+	console.log('✅ authMiddleware imported successfully');
+	
+	if (!authMiddleware) {
+		throw new Error('authMiddleware is undefined');
 	}
 } catch (error) {
 	console.error('❌ Error importing authMiddleware:', error.message);
+	process.exit(1); // Exit if auth middleware can't be loaded
 }
 
 try {
-	const roleAuth = require('../middleware/roleAuth');
-	requireRole = roleAuth.requireRole;
+	const roleModule = require('../middleware/roleAuth');
+	requireRole = roleModule.requireRole;
+	console.log('✅ requireRole imported successfully');
+	
 	if (!requireRole) {
-		console.error('❌ requireRole not found in roleAuth module');
+		throw new Error('requireRole is undefined');
 	}
 } catch (error) {
-	console.error('❌ Error importing roleAuth:', error.message);
-	// Create a simple fallback
-	requireRole = (roles) => (req, res, next) => {
-		if (!req.user) {
-			return res.status(401).json({ message: 'Authentication required' });
-		}
-		if (!roles.includes(req.user.role)) {
-			return res.status(403).json({ message: 'Insufficient permissions' });
-		}
-		next();
-	};
+	console.error('❌ Error importing requireRole:', error.message);
+	process.exit(1); // Exit if role middleware can't be loaded
 }
 
-// Import controllers with error handling
-let controllers = {};
+// Import controller
+let systemAdminController;
 try {
-	controllers = require('../controllers/systemAdminController');
+	systemAdminController = require('../controllers/systemAdminController');
+	console.log('✅ systemAdminController imported successfully');
+	console.log('Available methods:', Object.keys(systemAdminController));
 } catch (error) {
 	console.error('❌ Error importing systemAdminController:', error.message);
-	// Create fallback controllers
-	controllers = {
-		getDashboard: (req, res) => res.json({ message: 'Dashboard endpoint - controller not loaded' }),
-		getSchools: (req, res) => res.json({ message: 'Schools endpoint - controller not loaded' }),
-		updateSchoolApproval: (req, res) => res.json({ message: 'Update school endpoint - controller not loaded' }),
-		getUsers: (req, res) => res.json({ message: 'Users endpoint - controller not loaded' }),
-		updateUserStatus: (req, res) => res.json({ message: 'Update user endpoint - controller not loaded' }),
-		getReports: (req, res) => res.json({ message: 'Reports endpoint - controller not loaded' }),
-		getAllBookings: (req, res) => res.json({ message: 'Bookings endpoint - controller not loaded' })
-	};
+	process.exit(1); // Exit if controller can't be loaded
 }
 
-// Apply middleware if available
-if (authMiddleware && typeof authMiddleware === 'function') {
-	router.use(authMiddleware);
-	console.log('✅ System Admin: Auth middleware applied');
-} else {
-	console.log('⚠️ System Admin: Auth middleware not available');
-}
-
-if (requireRole && typeof requireRole === 'function') {
-	router.use(requireRole(['system_admin']));
-	console.log('✅ System Admin: Role middleware applied');
-} else {
-	console.log('⚠️ System Admin: Role middleware not available');
-}
+// Apply middleware
+console.log('🔧 Applying middleware...');
+router.use(authMiddleware);
+router.use(requireRole(['system_admin']));
+console.log('✅ Middleware applied successfully');
 
 // Log all system admin API calls
 router.use((req, res, next) => {
-	console.log(`🔐 System Admin API: ${req.method} ${req.path} by ${req.user?.name || 'Unknown'}`);
+	console.log(`🔐 System Admin API: ${req.method} ${req.path} by ${req.user?.name || 'Unknown'} (${req.user?.email || 'No email'})`);
 	next();
 });
 
+// Test route (for debugging)
+router.get('/test', (req, res) => {
+	res.json({
+		message: 'System Admin routes working',
+		timestamp: new Date().toISOString(),
+		user: req.user ? {
+			id: req.user._id,
+			name: req.user.name,
+			email: req.user.email,
+			role: req.user.role
+		} : null
+	});
+});
+
 // Dashboard routes
-router.get('/dashboard', controllers.getDashboard);
+router.get('/dashboard', systemAdminController.getDashboard);
 
 // School management routes
-router.get('/schools', controllers.getSchools);
-router.put('/schools/:schoolId/approve', controllers.updateSchoolApproval);
+router.get('/schools', systemAdminController.getSchools);
+router.put('/schools/:schoolId/approve', systemAdminController.updateSchoolApproval);
 
 // User management routes
-router.get('/users', controllers.getUsers);
-router.put('/users/:userId/status', controllers.updateUserStatus);
+router.get('/users', systemAdminController.getUsers);
+router.put('/users/:userId/status', systemAdminController.updateUserStatus);
 
 // Reports and analytics routes
-router.get('/reports', controllers.getReports);
+router.get('/reports', systemAdminController.getReports);
+router.get('/analytics', systemAdminController.getAdvancedAnalytics);
 
 // Booking management routes
-router.get('/bookings', controllers.getAllBookings);
+router.get('/bookings', systemAdminController.getAllBookings);
 
-// Health check for system admin routes
+// Health check
 router.get('/health', (req, res) => {
 	res.json({
-		status: 'System Admin routes are working (debug mode)',
+		status: 'System Admin routes fully operational',
 		user: req.user ? {
-			id: req.user._id || req.user.id,
+			id: req.user._id,
 			name: req.user.name,
 			email: req.user.email,
 			role: req.user.role
 		} : null,
-		middleware: {
-			auth: !!authMiddleware,
-			role: !!requireRole
-		},
+		availableEndpoints: [
+			'GET /test',
+			'GET /dashboard', 
+			'GET /schools',
+			'PUT /schools/:schoolId/approve',
+			'GET /users',
+			'PUT /users/:userId/status', 
+			'GET /reports',
+			'GET /analytics',
+			'GET /bookings',
+			'GET /health'
+		],
 		timestamp: new Date().toISOString()
 	});
 });
+
+console.log('✅ System Admin routes setup complete');
 
 module.exports = router;
