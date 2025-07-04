@@ -1,0 +1,217 @@
+/* results.css */
+
+.results-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.results-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.sort-controls label {
+  font-weight: 500;
+  color: #333;
+}
+
+.sort-controls select {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.filter-grid input,
+.filter-grid select {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.filter-buttons button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #3498db;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.filter-buttons button:hover {
+  background-color: #2980b9;
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.2rem;
+}
+
+.rating-number {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.star {
+  font-size: 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+  color: #ccc;
+}
+
+.star.full {
+  color: #f39c12;
+}
+
+.star.partial {
+  background: linear-gradient(90deg, #f39c12 50%, #ccc 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.star:hover {
+  transform: scale(1.2);
+}
+
+.star-select {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.2rem;
+}
+
+.star-value {
+  margin-left: 0.3rem;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.star-filter label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  color: #444;
+}
+
+.rating-filters {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.school-card {
+  background-color: #fdfdfd;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.school-card:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+}
+
+.school-card h2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.school-card p {
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.school-card a {
+  display: inline-block;
+  margin-top: 0.6rem;
+  color: #3498db;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.school-card a:hover {
+  text-decoration: underline;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  background-color: #eee;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #ddd;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: red;
+  text-align: center;
+  margin-top: 1rem;
+}

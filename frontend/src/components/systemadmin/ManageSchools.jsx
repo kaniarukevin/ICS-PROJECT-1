@@ -62,7 +62,7 @@ const ManageSchools = () => {
 	const updateSchoolVerification = async (schoolId, isVerified) => {
 		try {
 			const token = localStorage.getItem('token');
-			const response = await fetch(`/api/system-admin/schools/${schoolId}/approve`, {
+			const response = await fetch(`http://localhost:5000/api/system-admin/schools/${schoolId}/approve`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',

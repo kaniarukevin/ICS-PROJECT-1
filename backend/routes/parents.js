@@ -11,19 +11,21 @@ const {
 	cancelBooking,
 	getAllSchools,
 	getSchoolById,
+    getToursForSchool,
+    compareSchools,
 	rateSchool
 } = require('../controllers/parentController');
 
 //Parent-protected routes
 router.get('/profile', authMiddleware, requireParent, getParentProfile);
-router.get('/tours', authMiddleware, requireParent, getAllTours);
 router.get('/bookings', authMiddleware, requireParent, getMyBookings);
-router.post('/bookings', authMiddleware, requireParent, bookTour);
 router.delete('/bookings/:bookingId', authMiddleware, requireParent, cancelBooking);
 router.post('/schools/:schoolId/rate', authMiddleware, requireParent, rateSchool);
-
-//Public routes
+router.post('/book', authMiddleware, requireParent, bookTour);
+router.get('/compare', authMiddleware, requireParent, compareSchools);
+// Public routes
 router.get('/schools', getAllSchools);
 router.get('/schools/:schoolId', getSchoolById);
+router.get('/tours',getToursForSchool);
 
 module.exports = router;

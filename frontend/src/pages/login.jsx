@@ -45,9 +45,9 @@ const Login = () => {
 				} else if (data.user.role === 'system_admin') {
 					navigate('/system-admin');
 				} else if (data.user.role === 'parent') {
-					navigate('/dashboard');
+					navigate('/home');
 				} else {
-					navigate('/dashboard');
+					navigate('/');
 				}
 			} else {
 				setError(data.message || 'Login failed');
