@@ -1,4 +1,4 @@
-// frontend/src/components/schooladmin/ManageTours.jsx (Enhanced)
+// frontend/src/components/schooladmin/ManageTours.jsx (Enhanced - Simplified Form)
 import React, { useState, useEffect } from 'react';
 
 const ManageTours = () => {
@@ -13,7 +13,6 @@ const ManageTours = () => {
 		description: '',
 		date: '',
 		startTime: '',
-		endTime: '',
 		maxCapacity: '',
 		tourType: 'Physical',
 		meetingPoint: 'Main Reception',
@@ -51,6 +50,20 @@ const ManageTours = () => {
 		}
 	};
 
+	// Calculate end time from start time + duration
+	const calculateEndTime = (startTime, duration) => {
+		if (!startTime || !duration) return '';
+		
+		const [hours, minutes] = startTime.split(':').map(Number);
+		const startMinutes = hours * 60 + minutes;
+		const endMinutes = startMinutes + parseInt(duration);
+		
+		const endHours = Math.floor(endMinutes / 60);
+		const endMins = endMinutes % 60;
+		
+		return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setSubmitting(true);
@@ -63,9 +76,12 @@ const ManageTours = () => {
 			
 			const method = editingTour ? 'PUT' : 'POST';
 			
-			// Prepare data
+			// Prepare data - calculate end time from start time + duration
+			const endTime = calculateEndTime(formData.startTime, formData.duration);
+			
 			const tourData = {
 				...formData,
+				endTime, // Auto-calculated
 				maxCapacity: parseInt(formData.maxCapacity),
 				duration: parseInt(formData.duration),
 				highlights: formData.highlights.split('\n').filter(h => h.trim()),
@@ -104,7 +120,6 @@ const ManageTours = () => {
 			description: tour.description,
 			date: tour.date.split('T')[0],
 			startTime: tour.startTime,
-			endTime: tour.endTime,
 			maxCapacity: tour.maxCapacity.toString(),
 			tourType: tour.tourType || 'Physical',
 			meetingPoint: tour.meetingPoint || 'Main Reception',
@@ -170,7 +185,6 @@ const ManageTours = () => {
 			description: '',
 			date: '',
 			startTime: '',
-			endTime: '',
 			maxCapacity: '',
 			tourType: 'Physical',
 			meetingPoint: 'Main Reception',
@@ -306,7 +320,8 @@ const ManageTours = () => {
 					</h2>
 					
 					<form onSubmit={handleSubmit}>
-						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+						{/* Title and Tour Type */}
+						<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
 							<input
 								type="text"
 								placeholder="Tour Title"
@@ -337,6 +352,7 @@ const ManageTours = () => {
 							</select>
 						</div>
 						
+						{/* Description */}
 						<textarea
 							placeholder="Tour Description"
 							value={formData.description}
@@ -354,139 +370,193 @@ const ManageTours = () => {
 							}}
 						/>
 						
+						{/* Date, Start Time, Duration */}
 						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-							<input
-								type="date"
-								value={formData.date}
-								onChange={(e) => setFormData({...formData, date: e.target.value})}
-								required
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									📅 Date
+								</label>
+								<input
+									type="date"
+									value={formData.date}
+									onChange={(e) => setFormData({...formData, date: e.target.value})}
+									required
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem'
+									}}
+								/>
+							</div>
 							
-							<input
-								type="time"
-								placeholder="Start Time"
-								value={formData.startTime}
-								onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-								required
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									⏰ Start Time
+								</label>
+								<input
+									type="time"
+									value={formData.startTime}
+									onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+									required
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem'
+									}}
+								/>
+							</div>
 							
-							<input
-								type="time"
-								placeholder="End Time"
-								value={formData.endTime}
-								onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-								required
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									⏱️ Duration (minutes)
+								</label>
+								<select
+									value={formData.duration}
+									onChange={(e) => setFormData({...formData, duration: e.target.value})}
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem'
+									}}
+								>
+									<option value="60">60 minutes</option>
+									<option value="90">90 minutes</option>
+									<option value="120">120 minutes</option>
+									<option value="150">150 minutes</option>
+									<option value="180">180 minutes</option>
+								</select>
+							</div>
 						</div>
-						
-						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-							<input
-								type="number"
-								placeholder="Max Capacity"
-								value={formData.maxCapacity}
-								onChange={(e) => setFormData({...formData, maxCapacity: e.target.value})}
-								required
-								min="1"
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
-							
-							<input
-								type="text"
-								placeholder="Meeting Point"
-								value={formData.meetingPoint}
-								onChange={(e) => setFormData({...formData, meetingPoint: e.target.value})}
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
-							
-							<input
-								type="number"
-								placeholder="Duration (minutes)"
-								value={formData.duration}
-								onChange={(e) => setFormData({...formData, duration: e.target.value})}
-								min="30"
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
-							/>
-						</div>
-						
-						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-							<textarea
-								placeholder="Tour Highlights (one per line)"
-								value={formData.highlights}
-								onChange={(e) => setFormData({...formData, highlights: e.target.value})}
-								rows="4"
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem',
-									resize: 'vertical'
-								}}
-							/>
-							
-							<textarea
-								placeholder="Requirements (one per line)"
-								value={formData.requirements}
-								onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-								rows="4"
-								style={{
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem',
-									resize: 'vertical'
-								}}
-							/>
-						</div>
-						
-						<textarea
-							placeholder="Additional Notes"
-							value={formData.notes}
-							onChange={(e) => setFormData({...formData, notes: e.target.value})}
-							rows="2"
-							style={{
-								width: '100%',
-								padding: '0.75rem',
-								border: '1px solid #ddd',
+
+						{/* Show calculated end time */}
+						{formData.startTime && formData.duration && (
+							<div style={{ 
+								backgroundColor: '#f8f9fa', 
+								padding: '0.75rem', 
 								borderRadius: '4px',
-								fontSize: '1rem',
 								marginBottom: '1rem',
-								resize: 'vertical'
-							}}
-						/>
+								fontSize: '0.9rem',
+								color: '#666'
+							}}>
+								🕐 Tour will end at: <strong>{calculateEndTime(formData.startTime, formData.duration)}</strong>
+							</div>
+						)}
 						
+						{/* Capacity and Meeting Point */}
+						<div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', marginBottom: '1rem' }}>
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									👥 Max Capacity
+								</label>
+								<input
+									type="number"
+									placeholder="e.g., 20"
+									value={formData.maxCapacity}
+									onChange={(e) => setFormData({...formData, maxCapacity: e.target.value})}
+									required
+									min="1"
+									max="100"
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem'
+									}}
+								/>
+							</div>
+							
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									📍 Meeting Point
+								</label>
+								<input
+									type="text"
+									placeholder="e.g., Main Reception, Library Entrance"
+									value={formData.meetingPoint}
+									onChange={(e) => setFormData({...formData, meetingPoint: e.target.value})}
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem'
+									}}
+								/>
+							</div>
+						</div>
+						
+						{/* Highlights and Requirements */}
+						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									✨ Tour Highlights (one per line)
+								</label>
+								<textarea
+									placeholder="e.g., Science Labs&#10;Sports Facilities&#10;Arts Center"
+									value={formData.highlights}
+									onChange={(e) => setFormData({...formData, highlights: e.target.value})}
+									rows="4"
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem',
+										resize: 'vertical'
+									}}
+								/>
+							</div>
+							
+							<div>
+								<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+									📋 Requirements (one per line)
+								</label>
+								<textarea
+									placeholder="e.g., Wear comfortable shoes&#10;Bring photo ID&#10;Arrive 10 minutes early"
+									value={formData.requirements}
+									onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+									rows="4"
+									style={{
+										width: '100%',
+										padding: '0.75rem',
+										border: '1px solid #ddd',
+										borderRadius: '4px',
+										fontSize: '1rem',
+										resize: 'vertical'
+									}}
+								/>
+							</div>
+						</div>
+						
+						{/* Additional Notes */}
+						<div style={{ marginBottom: '1rem' }}>
+							<label style={{ display: 'block', marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem' }}>
+								📝 Additional Notes
+							</label>
+							<textarea
+								placeholder="Any additional information for tour participants..."
+								value={formData.notes}
+								onChange={(e) => setFormData({...formData, notes: e.target.value})}
+								rows="2"
+								style={{
+									width: '100%',
+									padding: '0.75rem',
+									border: '1px solid #ddd',
+									borderRadius: '4px',
+									fontSize: '1rem',
+									resize: 'vertical'
+								}}
+							/>
+						</div>
+						
+						{/* Submit Buttons */}
 						<div style={{ display: 'flex', gap: '1rem' }}>
 							<button 
 								type="submit" 
@@ -572,7 +642,7 @@ const ManageTours = () => {
 								<div><strong>📅 Date:</strong> {new Date(tour.date).toLocaleDateString()}</div>
 								<div><strong>⏰ Time:</strong> {tour.startTime} - {tour.endTime}</div>
 								<div><strong>👥 Capacity:</strong> {tour.currentBookings}/{tour.maxCapacity}</div>
-								<div><strong>🏃 Duration:</strong> {tour.duration || 90} min</div>
+								<div><strong>⏱️ Duration:</strong> {tour.duration || 90} min</div>
 								<div><strong>📍 Meeting:</strong> {tour.meetingPoint}</div>
 								<div><strong>🎯 Type:</strong> {tour.tourType}</div>
 							</div>
