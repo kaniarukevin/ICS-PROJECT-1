@@ -26,6 +26,10 @@ const Navbar = () => {
     }
   };
 
+  const goToMyBookings = () => {
+    navigate('/my-bookings');
+  };
+
   return (
     <nav
       style={{
@@ -63,11 +67,28 @@ const Navbar = () => {
         Home
       </div>
 
-      {/* Right - User Info & Login/Logout */}
+      {/* Right - User Info & Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         {token && user ? (
           <>
             <span>Hello, {user.name}</span>
+
+            {user.role === 'parent' && (
+              <button
+                onClick={goToMyBookings}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                My Bookings
+              </button>
+            )}
+
             <button
               onClick={handleLogout}
               style={{

@@ -3,66 +3,65 @@ const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
 const School = require('../models/School');
 
-// 🔐 Get parent profile
+//Get parent profile
 const getParentProfile = async (req, res) => {
-    try {
-        const parent = await User.findById(req.user._id).select('-password');
-        if (!parent) return res.status(404).json({ message: 'Parent not found' });
-        res.json(parent);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
+  try {
+    const parent = await User.findById(req.user._id).select('-password');
+    if (!parent) return res.status(404).json({ message: 'Parent not found' });
+    res.json(parent);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
-// 📆 Get all available tours
+//Get all available tours
 const getAllTours = async (req, res) => {
-    try {
-        const tours = await Tour.find()
-            .populate('schoolId', 'name location.city location.state')
-            .sort({ date: 1 });
-        res.json(tours);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
+  try {
+    const tours = await Tour.find()
+      .populate('schoolId', 'name location.city location.state')
+      .sort({ date: 1 });
+    res.json(tours);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
-// ✅ Get all tours for a specific school
+//Get all tours for a specific school
 const getToursForSchool = async (req, res) => {
   try {
     const { schoolId } = req.query;
-
-    if (!schoolId) {
-      return res.status(400).json({ message: 'Missing schoolId in query' });
-    }
+    if (!schoolId) return res.status(400).json({ message: 'Missing schoolId in query' });
 
     const tours = await Tour.find({ schoolId, isActive: true }).sort({ date: 1 });
-
-    // Always return an array even if empty
-    return res.status(200).json(tours);
+    res.status(200).json(tours);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch tours', error: error.message });
   }
 };
 
-
-
-
-// 🧾 Get parent’s bookings
+//Get parent’s bookings
 const getMyBookings = async (req, res) => {
-    try {
-        const bookings = await Booking.find({ parentId: req.user._id })
-            .populate('tourId', 'title date')
-            .populate('schoolId', 'name location.city')
-            .sort({ createdAt: -1 });
-        res.json(bookings);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
+  try {
+    const bookings = await Booking.find({ parentId: req.user._id })
+      .populate('tourId', 'title date')
+      .populate('schoolId', 'name location.city')
+      .sort({ createdAt: -1 });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
+//Book a tour
 const bookTour = async (req, res) => {
   try {
-    const { tourId, schoolId, numberOfGuests = 1 } = req.body;
+    const { tourId, schoolId, numberOfGuests = 1, selectedTimeSlot } = req.body;
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Unauthorized: No user found' });
+    }
+    if (!tourId || !schoolId || !selectedTimeSlot) {
+      return res.status(400).json({ message: 'Missing required fields: tourId, schoolId, selectedTimeSlot' });
+    }
 
     const tour = await Tour.findById(tourId);
     if (!tour) return res.status(404).json({ message: 'Tour not found' });
@@ -72,10 +71,7 @@ const bookTour = async (req, res) => {
       return res.status(400).json({ message: 'Not enough available spots' });
     }
 
-    const existingBooking = await Booking.findOne({
-      parentId: req.user._id,
-      tourId
-    });
+    const existingBooking = await Booking.findOne({ parentId: req.user._id, tourId });
     if (existingBooking) {
       return res.status(400).json({ message: 'You have already booked this tour' });
     }
@@ -85,19 +81,23 @@ const bookTour = async (req, res) => {
       schoolId,
       parentId: req.user._id,
       numberOfGuests,
+      selectedTimeSlot,
       status: 'pending'
     });
 
     await booking.save();
 
+    tour.currentBookings = (tour.currentBookings || 0) + numberOfGuests;
+    await tour.save();
+
     res.status(201).json({ message: 'Booking request sent and awaiting approval', booking });
   } catch (error) {
+    console.error('Booking error:', error);
     res.status(500).json({ message: 'Booking failed', error: error.message });
   }
 };
 
-
-// ❌ Cancel booking (parent side - before 2 days)
+//Cancel booking
 const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -127,9 +127,8 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-
-// 🌍 Public: Get all verified schools (with filters)
- const getAllSchools = async (req, res) => {
+//Get all verified schools (with filters)
+const getAllSchools = async (req, res) => {
   try {
     const {
       name,
@@ -149,43 +148,35 @@ const cancelBooking = async (req, res) => {
 
     const filter = { isVerified: true };
 
-    if (name) {
-      filter.name = { $regex: name, $options: 'i' };
-    }
-
-    if (schoolType) {
-      filter.schoolType = schoolType;
-    }
-
+    if (name) filter.name = { $regex: name, $options: 'i' };
+    if (schoolType) filter.schoolType = schoolType;
     if (location) {
-      filter['location.city'] = { $regex: location, $options: 'i' };
+      filter.$or = [
+        { 'location.city': { $regex: location, $options: 'i' } },
+        { 'location.state': { $regex: location, $options: 'i' } }
+      ];
     }
 
-    if (minFee || maxFee) {
-      filter['fees.tuition.minAmount'] = {};
-      if (minFee) filter['fees.tuition.minAmount'].$gte = parseFloat(minFee);
-      if (maxFee) filter['fees.tuition.minAmount'].$lte = parseFloat(maxFee);
-    }
+    // // Fee filtering (strict bounding logic)
+if (minFee && maxFee) {
+  filter['fees.tuition.minAmount'] = { $gte: parseFloat(minFee) };
+  filter['fees.tuition.maxAmount'] = { $lte: parseFloat(maxFee) };
+} else if (minFee) {
+  filter['fees.tuition.minAmount'] = { $gte: parseFloat(minFee) };
+} else if (maxFee) {
+  filter['fees.tuition.maxAmount'] = { $lte: parseFloat(maxFee) };
+}
 
-    if (overallRating) {
-      filter['ratings.overall'] = { $gte: parseFloat(overallRating) };
-    }
-    if (academicRating) {
-      filter['ratings.academic'] = { $gte: parseFloat(academicRating) };
-    }
-    if (facilitiesRating) {
-      filter['ratings.facilities'] = { $gte: parseFloat(facilitiesRating) };
-    }
-    if (teachersRating) {
-      filter['ratings.teachers'] = { $gte: parseFloat(teachersRating) };
-    }
-    if (environmentRating) {
-      filter['ratings.environment'] = { $gte: parseFloat(environmentRating) };
-    }
+
+
+    if (overallRating) filter['ratings.overall'] = { $gte: parseFloat(overallRating) };
+    if (academicRating) filter['ratings.academic'] = { $gte: parseFloat(academicRating) };
+    if (facilitiesRating) filter['ratings.facilities'] = { $gte: parseFloat(facilitiesRating) };
+    if (teachersRating) filter['ratings.teachers'] = { $gte: parseFloat(teachersRating) };
+    if (environmentRating) filter['ratings.environment'] = { $gte: parseFloat(environmentRating) };
 
     const limit = 9;
     const skip = (parseInt(page) - 1) * limit;
-
     const sortField = sortBy === 'a-z' ? 'name' : sortBy;
     const sortDirection = sortBy === 'a-z' ? 1 : sortOrder === 'asc' ? 1 : -1;
 
@@ -204,67 +195,80 @@ const cancelBooking = async (req, res) => {
   }
 };
 
+//Get all distinct city/state for location autocomplete
+const getAllLocations = async (req, res) => {
+  try {
+    const schools = await School.find({}, 'location.city location.state');
+    const locationsSet = new Set();
 
-// 🌍 Public: Get school by ID
+    schools.forEach(school => {
+      if (school.location?.city) locationsSet.add(school.location.city.toLowerCase());
+      if (school.location?.state) locationsSet.add(school.location.state.toLowerCase());
+    });
+
+    res.json([...locationsSet]);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch locations', error: err.message });
+  }
+};
+
+//Get school by ID
 const getSchoolById = async (req, res) => {
-    try {
-        const { schoolId } = req.params;
+  try {
+    const { schoolId } = req.params;
+    const school = await School.findById(schoolId).select('-adminId -__v');
+    if (!school) return res.status(404).json({ message: 'School not found' });
 
-        const school = await School.findById(schoolId).select('-adminId -__v');
-        if (!school) return res.status(404).json({ message: 'School not found' });
-
-        res.json(school);
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to fetch school details', error: error.message });
-    }
+    res.json(school);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch school details', error: error.message });
+  }
 };
 
-// 🌟 Parent rates a school
+//Parent rates a school
 const rateSchool = async (req, res) => {
-    try {
-        const { schoolId } = req.params;
-        const { overall, academic, facilities, teachers, environment, comment } = req.body;
+  try {
+    const { schoolId } = req.params;
+    const { overall, academic, facilities, teachers, environment, comment } = req.body;
 
-        const school = await School.findById(schoolId);
-        if (!school) return res.status(404).json({ message: 'School not found' });
+    const school = await School.findById(schoolId);
+    if (!school) return res.status(404).json({ message: 'School not found' });
 
-        const existingRating = school.ratingsList.find(
-            r => r.parentId.toString() === req.user._id.toString()
-        );
-        if (existingRating) return res.status(400).json({ message: 'You’ve already rated this school.' });
+    const existingRating = school.ratingsList.find(r => r.parentId.toString() === req.user._id.toString());
+    if (existingRating) return res.status(400).json({ message: 'You’ve already rated this school.' });
 
-        school.ratingsList.push({
-            parentId: req.user._id,
-            overall,
-            academic,
-            facilities,
-            teachers,
-            environment,
-            comment
-        });
+    school.ratingsList.push({
+      parentId: req.user._id,
+      overall,
+      academic,
+      facilities,
+      teachers,
+      environment,
+      comment
+    });
 
-        const total = school.ratingsList.length;
-        const avg = field =>
-            school.ratingsList.reduce((sum, rating) => sum + (rating[field] || 0), 0) / total;
+    const total = school.ratingsList.length;
+    const avg = field =>
+      school.ratingsList.reduce((sum, rating) => sum + (rating[field] || 0), 0) / total;
 
-        school.ratings = {
-            overall: avg('overall'),
-            academic: avg('academic'),
-            facilities: avg('facilities'),
-            teachers: avg('teachers'),
-            environment: avg('environment')
-        };
-        school.averageRating = avg('overall');
-        school.totalRatings = total;
+    school.ratings = {
+      overall: avg('overall'),
+      academic: avg('academic'),
+      facilities: avg('facilities'),
+      teachers: avg('teachers'),
+      environment: avg('environment')
+    };
+    school.averageRating = avg('overall');
+    school.totalRatings = total;
 
-        await school.save();
-        res.json({ message: 'Rating submitted successfully', school });
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to submit rating', error: error.message });
-    }
+    await school.save();
+    res.json({ message: 'Rating submitted successfully', school });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to submit rating', error: error.message });
+  }
 };
 
-// ✅ Compare schools by ID (2 at a time)
+//Compare schools
 const compareSchools = async (req, res) => {
   try {
     const { school1, school2 } = req.query;
@@ -272,9 +276,8 @@ const compareSchools = async (req, res) => {
       return res.status(400).json({ message: 'Please provide two school IDs to compare' });
     }
 
-    const schools = await School.find({
-      _id: { $in: [school1, school2] }
-    }).select('name location ratings fees schoolType');
+    const schools = await School.find({ _id: { $in: [school1, school2] } })
+      .select('name location ratings fees schoolType');
 
     if (schools.length !== 2) {
       return res.status(404).json({ message: 'One or both schools not found' });
@@ -287,14 +290,15 @@ const compareSchools = async (req, res) => {
 };
 
 module.exports = {
-    getParentProfile,
-    getAllTours,
-    getToursForSchool,
-    getMyBookings,
-    bookTour,
-    cancelBooking,
-    getAllSchools,
-    getSchoolById,
-    rateSchool,
-    compareSchools
+  getParentProfile,
+  getAllTours,
+  getToursForSchool,
+  getMyBookings,
+  bookTour,
+  cancelBooking,
+  getAllSchools,
+  getAllLocations, // 
+  getSchoolById,
+  rateSchool,
+  compareSchools
 };

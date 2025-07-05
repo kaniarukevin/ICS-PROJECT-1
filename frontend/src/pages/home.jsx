@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './results.css';
+import './home.css';
 
 function StarRating({ value }) {
   const stars = [];
@@ -17,7 +17,7 @@ function StarRating({ value }) {
 
 function StarFilter({ label, value, setValue }) {
   const handleClick = (val) => {
-    setValue(value === val ? '' : val); // Toggle
+    setValue(value === val ? '' : val);
   };
 
   return (
@@ -47,9 +47,15 @@ function Home() {
   const [name, setName] = useState(searchParams.get('name') || '');
   const [schoolType, setSchoolType] = useState(searchParams.get('schoolType') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [minFee, setMinFee] = useState(searchParams.get('minFee') || '');
   const [maxFee, setMaxFee] = useState(searchParams.get('maxFee') || '');
+
   const [overallRating, setOverallRating] = useState(searchParams.get('overallRating') || '');
+  const [academicRating, setAcademicRating] = useState(searchParams.get('academicRating') || '');
+  const [facilitiesRating, setFacilitiesRating] = useState(searchParams.get('facilitiesRating') || '');
+  const [teachersRating, setTeachersRating] = useState(searchParams.get('teachersRating') || '');
+  const [environmentRating, setEnvironmentRating] = useState(searchParams.get('environmentRating') || '');
 
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,22 +67,24 @@ function Home() {
 
     const params = {
       page: 1,
-      limit: 5, // Only fetch top 5 schools
+      limit: 5,
       name,
       schoolType,
       location,
-      minFee,
-      maxFee,
+      minFee: minFee ? Number(minFee) : undefined,
+      maxFee: maxFee ? Number(maxFee) : undefined,
       overallRating,
-      sortBy: 'ratings.overall', // Always sort by overall rating
-      sortOrder: 'desc', // Always descending to get top schools
+      academicRating,
+      facilitiesRating,
+      teachersRating,
+      environmentRating,
+      sortBy: 'ratings.overall',
+      sortOrder: 'desc',
     };
 
     try {
       const res = await axios.get('http://localhost:5000/api/parents/schools', { params });
-      const schoolData = res.data.schools || [];
-      // Ensure we only take the first 5 schools
-      setSchools(schoolData.slice(0, 5));
+      setSchools(res.data.schools?.slice(0, 5) || []);
     } catch (err) {
       console.error(err);
       setError('Failed to load schools');
@@ -85,21 +93,31 @@ function Home() {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/parents/locations');
+      setLocationSuggestions(res.data);
+    } catch (err) {
+      console.error('Failed to fetch locations', err);
+    }
+  };
+
   useEffect(() => {
     fetchSchools();
   }, [searchParams.toString()]);
 
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
   const handleSearch = () => {
     const searchParams = new URLSearchParams();
-    
-    // Only add non-empty parameters
     if (name) searchParams.set('name', name);
     if (schoolType) searchParams.set('schoolType', schoolType);
     if (location) searchParams.set('location', location);
     if (minFee) searchParams.set('minFee', minFee);
     if (maxFee) searchParams.set('maxFee', maxFee);
     if (overallRating) searchParams.set('overallRating', overallRating);
-    
     navigate(`/results?${searchParams.toString()}`);
   };
 
@@ -116,6 +134,10 @@ function Home() {
     setOverallRating('');
     setSearchParams({});
   };
+
+  const filteredSuggestions = locationSuggestions.filter(loc =>
+    loc.toLowerCase().includes(location.toLowerCase())
+  );
 
   return (
     <div className="results-wrapper">
@@ -137,7 +159,19 @@ function Home() {
           <option value="TVET">TVET</option>
           <option value="University">University</option>
         </select>
-        <input type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={handleKeyDown} />
+
+        <input
+          type="text"
+          list="location-options"
+          placeholder="Location (Town or County)"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <datalist id="location-options">
+          {filteredSuggestions.map((loc, i) => <option key={i} value={loc} />)}
+        </datalist>
+
         <input type="number" placeholder="Min Fee" value={minFee} onChange={(e) => setMinFee(e.target.value)} onKeyDown={handleKeyDown} />
         <input type="number" placeholder="Max Fee" value={maxFee} onChange={(e) => setMaxFee(e.target.value)} onKeyDown={handleKeyDown} />
 

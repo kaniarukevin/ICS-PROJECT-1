@@ -168,52 +168,37 @@ const getTours = async (req, res) => {
 };
 
 const createTour = async (req, res) => {
-	try {
-		const school = await School.findOne({ adminId: req.user.id });
-		if (!school) {
-			return res.status(404).json({ message: 'School not found' });
-		}
+  const school = await School.findOne({ adminId: req.user.id });
+  if (!school) return res.status(404).json({ message: 'School not found' });
 
-		const {
-			title,
-			description,
-			date,
-			startTime,
-			endTime,
-			maxCapacity,
-			tourType,
-			meetingPoint,
-			duration,
-			highlights,
-			requirements,
-			notes
-		} = req.body;
+  const {
+    title, description, date, timeSlots, maxCapacity,
+    tourType, meetingPoint, duration, highlights, requirements, notes
+  } = req.body;
 
-		const tour = new Tour({
-			title,
-			description,
-			schoolId: school._id,
-			date,
-			startTime,
-			endTime,
-			maxCapacity,
-			tourType,
-			meetingPoint,
-			duration,
-			highlights: highlights || [],
-			requirements: requirements || [],
-			notes
-		});
+  if (!Array.isArray(timeSlots) || timeSlots.length > 3) {
+    return res.status(400).json({ message: 'You can only provide up to 3 time slots' });
+  }
 
-		await tour.save();
-		console.log('✅ Tour created:', tour.title);
-		res.status(201).json(tour);
+  const tour = new Tour({
+    title,
+    description,
+    schoolId: school._id,
+    date,
+    timeSlots,
+    maxCapacity,
+    tourType,
+    meetingPoint,
+    duration,
+    highlights,
+    requirements,
+    notes
+  });
 
-	} catch (error) {
-		console.error('❌ Create tour error:', error);
-		res.status(500).json({ message: 'Error creating tour', error: error.message });
-	}
+  await tour.save();
+  res.status(201).json(tour);
 };
+
 
 const updateTour = async (req, res) => {
 	try {

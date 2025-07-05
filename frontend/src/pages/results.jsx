@@ -17,7 +17,7 @@ function StarRating({ value }) {
 
 function StarFilter({ label, value, setValue }) {
   const handleClick = (val) => {
-    setValue(value === val ? '' : val); // Toggle
+    setValue(value === val ? '' : val);
   };
 
   return (
@@ -47,6 +47,7 @@ function Results() {
   const [name, setName] = useState(searchParams.get('name') || '');
   const [schoolType, setSchoolType] = useState(searchParams.get('schoolType') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [minFee, setMinFee] = useState(searchParams.get('minFee') || '');
   const [maxFee, setMaxFee] = useState(searchParams.get('maxFee') || '');
 
@@ -74,8 +75,8 @@ function Results() {
       name,
       schoolType,
       location,
-      minFee,
-      maxFee,
+      minFee: minFee ? Number(minFee) : undefined,
+      maxFee: maxFee ? Number(maxFee) : undefined,
       overallRating,
       academicRating,
       facilitiesRating,
@@ -97,9 +98,22 @@ function Results() {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/parents/locations');
+      setLocationSuggestions(res.data);
+    } catch (err) {
+      console.error('Failed to fetch locations', err);
+    }
+  };
+
   useEffect(() => {
     fetchSchools();
   }, [searchParams.toString(), currentPage]);
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
 
   const handleApplyFilters = () => {
     const newParams = {
@@ -141,6 +155,10 @@ function Results() {
     setCurrentPage(1);
   };
 
+  const filteredSuggestions = locationSuggestions.filter(loc =>
+    loc.toLowerCase().includes(location.toLowerCase())
+  );
+
   return (
     <div className="results-wrapper">
       <h1 className="results-title">Search & Filter Schools</h1>
@@ -168,9 +186,35 @@ function Results() {
           <option value="TVET">TVET</option>
           <option value="University">University</option>
         </select>
-        <input type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={handleKeyDown} />
-        <input type="number" placeholder="Min Fee" value={minFee} onChange={(e) => setMinFee(e.target.value)} onKeyDown={handleKeyDown} />
-        <input type="number" placeholder="Max Fee" value={maxFee} onChange={(e) => setMaxFee(e.target.value)} onKeyDown={handleKeyDown} />
+
+        <input
+          type="text"
+          list="location-options"
+          placeholder="Location (Town or County)"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <datalist id="location-options">
+          {filteredSuggestions.map((loc, i) => <option key={i} value={loc} />)}
+        </datalist>
+
+        <input
+          type="number"
+          placeholder="Min Fee"
+          value={minFee}
+          min="0"
+          onChange={(e) => setMinFee(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <input
+          type="number"
+          placeholder="Max Fee"
+          value={maxFee}
+          min="0"
+          onChange={(e) => setMaxFee(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
 
         <div className="rating-filters">
           <StarFilter label="⭐ Overall Rating" value={overallRating} setValue={setOverallRating} />

@@ -21,6 +21,13 @@ const bookingSchema = new mongoose.Schema({
     default: 1,
     min: 1
   },
+  selectedTimeSlot: {
+    type: {
+      startTime: { type: String, required: true },
+      endTime: { type: String, required: true }
+    },
+    required: true
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'cancelled'],
