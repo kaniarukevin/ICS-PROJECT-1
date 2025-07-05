@@ -1,3 +1,4 @@
+// frontend/src/components/systemadmin/SystemReports.jsx
 import React, { useState, useEffect } from 'react';
 
 const SystemReports = () => {
@@ -7,9 +8,15 @@ const SystemReports = () => {
 		schoolsByType: [],
 		usersByRole: [],
 		ratingStats: {},
-		geographicDistribution: []
+		geographicDistribution: [],
+		tourPerformance: {},
+		bookingStatusDistribution: [],
+		feeStats: [],
+		recentActivity: {},
+		summary: {}
 	});
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 	const [selectedReport, setSelectedReport] = useState('overview');
 
 	useEffect(() => {
@@ -18,16 +25,60 @@ const SystemReports = () => {
 
 	const fetchReports = async () => {
 		try {
+			setLoading(true);
+			setError(null);
+			
 			const token = localStorage.getItem('token');
-			const response = await fetch('/api/system-admin/reports', {
+			const user = JSON.parse(localStorage.getItem('user') || '{}');
+			
+			console.log('📊 Fetching reports...');
+			console.log('Token exists:', !!token);
+			console.log('User role:', user.role);
+			
+			if (!token) {
+				throw new Error('No authentication token found');
+			}
+			
+			if (user.role !== 'system_admin') {
+				throw new Error(`Invalid role: ${user.role}. Expected: system_admin`);
+			}
+
+			const response = await fetch('http://localhost:5000/api/system-admin/reports', {
+				method: 'GET',
 				headers: {
-					'Authorization': `Bearer ${token}`
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
 				}
 			});
-			const data = await response.json();
+
+			console.log('📡 Response status:', response.status);
+			console.log('📡 Response OK:', response.ok);
+
+			// Get response text first to see what we're actually getting
+			const responseText = await response.text();
+			console.log('📡 Raw response preview:', responseText.substring(0, 200) + '...');
+
+			if (!response.ok) {
+				console.error('❌ API Error:', response.status, response.statusText);
+				throw new Error(`API Error: ${response.status} ${response.statusText}\nResponse: ${responseText}`);
+			}
+
+			// Try to parse as JSON
+			let data;
+			try {
+				data = JSON.parse(responseText);
+				console.log('✅ Reports data received:', data);
+			} catch (parseError) {
+				console.error('❌ JSON Parse Error:', parseError);
+				console.error('❌ Response was:', responseText);
+				throw new Error(`Invalid JSON response: ${parseError.message}\nResponse: ${responseText}`);
+			}
+
 			setReportsData(data);
+			setError(null);
 		} catch (error) {
-			console.error('Error fetching reports:', error);
+			console.error('❌ Error fetching reports:', error);
+			setError(error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -51,12 +102,16 @@ const SystemReports = () => {
 				csvContent = generateBookingsCSV();
 				filename = 'bookings_report.csv';
 				break;
+			case 'fees':
+				csvContent = generateFeesCSV();
+				filename = 'fees_report.csv';
+				break;
 			default:
 				return;
 		}
 
 		// Download CSV
-		const blob = new Blob([csvContent], { type: 'text/csv' });
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.setAttribute('hidden', '');
@@ -65,12 +120,14 @@ const SystemReports = () => {
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
 	};
 
 	const generateSchoolsCSV = () => {
 		const headers = 'School Type,Count,Percentage\n';
+		const total = reportsData.schoolsByType.reduce((sum, s) => sum + s.count, 0);
 		const rows = reportsData.schoolsByType.map(item => 
-			`${item._id || 'Unknown'},${item.count},${((item.count / reportsData.schoolsByType.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(1)}%`
+			`${item._id || 'Unknown'},${item.count},${total > 0 ? ((item.count / total) * 100).toFixed(1) : 0}%`
 		).join('\n');
 		return headers + rows;
 	};
@@ -79,7 +136,7 @@ const SystemReports = () => {
 		const headers = 'User Role,Count,Percentage\n';
 		const total = reportsData.usersByRole.reduce((sum, role) => sum + role.count, 0);
 		const rows = reportsData.usersByRole.map(item => 
-			`${item._id || 'Unknown'},${item.count},${((item.count / total) * 100).toFixed(1)}%`
+			`${item._id || 'Unknown'},${item.count},${total > 0 ? ((item.count / total) * 100).toFixed(1) : 0}%`
 		).join('\n');
 		return headers + rows;
 	};
@@ -92,9 +149,26 @@ const SystemReports = () => {
 		return headers + rows;
 	};
 
+	const generateFeesCSV = () => {
+		const headers = 'Currency,Average Min Fee,Average Max Fee,School Count\n';
+		const rows = reportsData.feeStats.map(item => 
+			`${item._id},${item.avgMinFee.toFixed(0)},${item.avgMaxFee.toFixed(0)},${item.schoolCount}`
+		).join('\n');
+		return headers + rows;
+	};
+
 	const formatMonth = (month, year) => {
 		const date = new Date(year, month - 1);
 		return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+	};
+
+	const formatCurrency = (amount, currency = 'KES') => {
+		return new Intl.NumberFormat('en-KE', {
+			style: 'currency',
+			currency: currency,
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0
+		}).format(amount);
 	};
 
 	const cardStyle = {
@@ -128,13 +202,57 @@ const SystemReports = () => {
 	};
 
 	if (loading) {
-		return <div style={{ padding: '2rem' }}>Loading reports...</div>;
+		return (
+			<div style={{ padding: '2rem', textAlign: 'center' }}>
+				<h2>📊 Loading Reports...</h2>
+				<p>Fetching system analytics and data from /api/system-admin/reports</p>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div style={{ padding: '2rem', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '4px' }}>
+				<h2 style={{ color: '#721c24' }}>❌ Reports Error</h2>
+				<pre style={{ 
+					backgroundColor: '#fff', 
+					padding: '1rem', 
+					border: '1px solid #ccc', 
+					borderRadius: '4px',
+					overflow: 'auto',
+					fontSize: '0.9rem'
+				}}>
+					{error}
+				</pre>
+				<button 
+					onClick={fetchReports}
+					style={{
+						marginTop: '1rem',
+						padding: '0.75rem 1.5rem',
+						backgroundColor: '#dc3545',
+						color: 'white',
+						border: 'none',
+						borderRadius: '4px',
+						cursor: 'pointer'
+					}}
+				>
+					🔄 Retry
+				</button>
+				
+				<div style={{ marginTop: '1rem' }}>
+					<h4>Debug Info:</h4>
+					<p><strong>Backend URL:</strong> http://localhost:5000/api/system-admin/reports</p>
+					<p><strong>Token exists:</strong> {localStorage.getItem('token') ? 'Yes' : 'No'}</p>
+					<p><strong>User role:</strong> {JSON.parse(localStorage.getItem('user') || '{}').role}</p>
+				</div>
+			</div>
+		);
 	}
 
 	return (
 		<div style={{ padding: '1rem', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-				<h1>System Reports & Analytics</h1>
+				<h1>📊 System Reports & Analytics</h1>
 				<div>
 					<button 
 						onClick={() => fetchReports()}
@@ -150,7 +268,22 @@ const SystemReports = () => {
 					>
 						🔄 Refresh Data
 					</button>
+					<small style={{ color: '#666' }}>
+						Last updated: {reportsData.generatedAt ? new Date(reportsData.generatedAt).toLocaleString() : 'Unknown'}
+					</small>
 				</div>
+			</div>
+
+			{/* Success indicator */}
+			<div style={{ 
+				backgroundColor: '#d4edda', 
+				border: '1px solid #c3e6cb', 
+				borderRadius: '4px',
+				padding: '0.75rem',
+				marginBottom: '1rem',
+				color: '#155724'
+			}}>
+				✅ Successfully connected to reports API
 			</div>
 
 			{/* Report Tabs */}
@@ -185,6 +318,12 @@ const SystemReports = () => {
 				>
 					⭐ Ratings Analysis
 				</button>
+				<button
+					style={selectedReport === 'financial' ? activeTabStyle : inactiveTabStyle}
+					onClick={() => setSelectedReport('financial')}
+				>
+					💰 Financial Analysis
+				</button>
 			</div>
 
 			{/* Overview Report */}
@@ -197,15 +336,19 @@ const SystemReports = () => {
 							<div style={{ display: 'grid', gap: '0.5rem' }}>
 								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 									<span>Total Schools:</span>
-									<strong>{reportsData.schoolsByType.reduce((sum, s) => sum + s.count, 0)}</strong>
+									<strong>{reportsData.summary?.totalSchools || 0}</strong>
 								</div>
 								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 									<span>Total Users:</span>
-									<strong>{reportsData.usersByRole.reduce((sum, u) => sum + u.count, 0)}</strong>
+									<strong>{reportsData.summary?.totalUsers || 0}</strong>
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span>Total Tours:</span>
+									<strong>{reportsData.summary?.totalTours || 0}</strong>
 								</div>
 								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 									<span>Total Bookings:</span>
-									<strong>{reportsData.bookingsByMonth.reduce((sum, b) => sum + b.count, 0)}</strong>
+									<strong>{reportsData.summary?.totalBookings || 0}</strong>
 								</div>
 								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 									<span>Average Rating:</span>
@@ -214,10 +357,41 @@ const SystemReports = () => {
 							</div>
 						</div>
 
+						{/* Recent Activity */}
+						<div style={cardStyle}>
+							<h3>📈 Recent Activity (30 days)</h3>
+							<div style={{ display: 'grid', gap: '0.5rem' }}>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span>New Schools:</span>
+									<span style={{ fontWeight: 'bold', color: '#007bff' }}>
+										{reportsData.recentActivity?.newSchools || 0}
+									</span>
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span>New Users:</span>
+									<span style={{ fontWeight: 'bold', color: '#28a745' }}>
+										{reportsData.recentActivity?.newUsers || 0}
+									</span>
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span>New Tours:</span>
+									<span style={{ fontWeight: 'bold', color: '#17a2b8' }}>
+										{reportsData.recentActivity?.newTours || 0}
+									</span>
+								</div>
+								<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+									<span>New Bookings:</span>
+									<span style={{ fontWeight: 'bold', color: '#dc3545' }}>
+										{reportsData.recentActivity?.newBookings || 0}
+									</span>
+								</div>
+							</div>
+						</div>
+
 						{/* Top Performing Regions */}
 						<div style={cardStyle}>
 							<h3>🌍 Geographic Distribution</h3>
-							{reportsData.geographicDistribution.length > 0 ? (
+							{reportsData.geographicDistribution?.length > 0 ? (
 								<div>
 									{reportsData.geographicDistribution.slice(0, 5).map((region, index) => (
 										<div key={index} style={{ 
@@ -226,7 +400,7 @@ const SystemReports = () => {
 											padding: '0.5rem 0',
 											borderBottom: index < 4 ? '1px solid #eee' : 'none'
 										}}>
-											<span>{region._id}</span>
+											<span>{region._id || 'Unknown City'}</span>
 											<span style={{ fontWeight: 'bold' }}>{region.count} schools</span>
 										</div>
 									))}
@@ -263,11 +437,11 @@ const SystemReports = () => {
 						{/* Schools by Type */}
 						<div style={cardStyle}>
 							<h3>Schools by Type</h3>
-							{reportsData.schoolsByType.length > 0 ? (
+							{reportsData.schoolsByType?.length > 0 ? (
 								<div>
 									{reportsData.schoolsByType.map((type, index) => {
 										const total = reportsData.schoolsByType.reduce((sum, s) => sum + s.count, 0);
-										const percentage = ((type.count / total) * 100).toFixed(1);
+										const percentage = total > 0 ? ((type.count / total) * 100).toFixed(1) : 0;
 										return (
 											<div key={index} style={{ 
 												marginBottom: '1rem',
@@ -304,7 +478,7 @@ const SystemReports = () => {
 						{/* Schools by Status */}
 						<div style={cardStyle}>
 							<h3>Verification Status</h3>
-							{reportsData.schoolsByStatus.length > 0 ? (
+							{reportsData.schoolsByStatus?.length > 0 ? (
 								<div>
 									{reportsData.schoolsByStatus.map((status, index) => (
 										<div key={index} style={{ 
@@ -350,11 +524,11 @@ const SystemReports = () => {
 
 					<div style={cardStyle}>
 						<h3>Users by Role</h3>
-						{reportsData.usersByRole.length > 0 ? (
+						{reportsData.usersByRole?.length > 0 ? (
 							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
 								{reportsData.usersByRole.map((role, index) => {
 									const total = reportsData.usersByRole.reduce((sum, r) => sum + r.count, 0);
-									const percentage = ((role.count / total) * 100).toFixed(1);
+									const percentage = total > 0 ? ((role.count / total) * 100).toFixed(1) : 0;
 									const roleColors = {
 										parent: '#28a745',
 										school_admin: '#007bff',
@@ -406,7 +580,7 @@ const SystemReports = () => {
 
 					<div style={cardStyle}>
 						<h3>Monthly Booking Trends</h3>
-						{reportsData.bookingsByMonth.length > 0 ? (
+						{reportsData.bookingsByMonth?.length > 0 ? (
 							<div>
 								<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
 									{reportsData.bookingsByMonth.slice(0, 12).map((month, index) => (
@@ -431,6 +605,40 @@ const SystemReports = () => {
 							<p style={{ color: '#666' }}>No booking data available</p>
 						)}
 					</div>
+
+					{/* Booking Status Distribution */}
+					{reportsData.bookingStatusDistribution?.length > 0 && (
+						<div style={cardStyle}>
+							<h3>Booking Status Distribution</h3>
+							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+								{reportsData.bookingStatusDistribution.map((status, index) => {
+									const statusColors = {
+										pending: '#ffc107',
+										confirmed: '#28a745',
+										cancelled: '#dc3545',
+										completed: '#17a2b8',
+										'no-show': '#6c757d'
+									};
+									return (
+										<div key={index} style={{ 
+											padding: '1rem',
+											backgroundColor: statusColors[status._id] || '#6c757d',
+											color: 'white',
+											borderRadius: '4px',
+											textAlign: 'center'
+										}}>
+											<div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+												{status._id?.toUpperCase() || 'UNKNOWN'}
+											</div>
+											<div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+												{status.count}
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					)}
 				</div>
 			)}
 
@@ -473,6 +681,71 @@ const SystemReports = () => {
 							<div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#e9ecef', borderRadius: '4px' }}>
 								<strong>Total Rated Schools:</strong> {reportsData.ratingStats.totalRated}
 							</div>
+						)}
+					</div>
+				</div>
+			)}
+
+			{/* Financial Analysis */}
+			{selectedReport === 'financial' && (
+				<div>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+						<h2>💰 Financial Analysis</h2>
+						<button
+							onClick={() => downloadReport('fees')}
+							style={{
+								padding: '0.5rem 1rem',
+								backgroundColor: '#17a2b8',
+								color: 'white',
+								border: 'none',
+								borderRadius: '4px',
+								cursor: 'pointer'
+							}}
+						>
+							📥 Download CSV
+						</button>
+					</div>
+
+					<div style={cardStyle}>
+						<h3>Fee Structure Analysis</h3>
+						{reportsData.feeStats?.length > 0 ? (
+							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+								{reportsData.feeStats.map((fee, index) => (
+									<div key={index} style={{ 
+										padding: '1.5rem',
+										backgroundColor: '#f8f9fa',
+										borderRadius: '8px'
+									}}>
+										<h4 style={{ margin: '0 0 1rem 0', color: '#007bff' }}>
+											{fee._id} Currency
+										</h4>
+										<div style={{ display: 'grid', gap: '0.5rem' }}>
+											<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+												<span>Schools:</span>
+												<strong>{fee.schoolCount}</strong>
+											</div>
+											<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+												<span>Avg Min Fee:</span>
+												<strong>{formatCurrency(fee.avgMinFee, fee._id)}</strong>
+											</div>
+											<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+												<span>Avg Max Fee:</span>
+												<strong>{formatCurrency(fee.avgMaxFee, fee._id)}</strong>
+											</div>
+											<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+												<span>Lowest Fee:</span>
+												<strong>{formatCurrency(fee.minFee, fee._id)}</strong>
+											</div>
+											<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+												<span>Highest Fee:</span>
+												<strong>{formatCurrency(fee.maxFee, fee._id)}</strong>
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<p style={{ color: '#666' }}>No fee structure data available</p>
 						)}
 					</div>
 				</div>
