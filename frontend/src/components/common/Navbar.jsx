@@ -1,71 +1,105 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
-	const navigate = useNavigate();
-	const user = JSON.parse(localStorage.getItem('user'));
-	const token = localStorage.getItem('token');
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
 
-	const handleLogout = () => {
-		localStorage.removeItem('user');
-		localStorage.removeItem('token');
-		navigate('/login');
-	};
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to log out?');
+    if (confirmLogout) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      navigate('/login');
+    }
+  };
 
-	return (
-		<nav style={{ 
-			padding: '1rem', 
-			backgroundColor: '#f8f9fa', 
-			borderBottom: '1px solid #dee2e6',
-			display: 'flex',
-			justifyContent: 'space-between',
-			alignItems: 'center'
-		}}>
-			<div>
-				<Link to="/dashboard" style={{ textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-					EduSearch
-				</Link>
-			</div>
+  const handleLogoClick = () => {
+    if (token && user) {
+      if (user.role === 'school_admin') navigate('/school-admin');
+      else if (user.role === 'system_admin') navigate('/system-admin');
+      else if (user.role === 'parent') navigate('/home');
+      else navigate('/home');
+    } else {
+      navigate('/home');
+    }
+  };
 
-			{token && user && (
-				<div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-					{/* Role-specific navigation */}
-					{user.role === 'school_admin' && (
-						<Link to="/school-admin" style={{ textDecoration: 'none', padding: '0.5rem 1rem', backgroundColor: '#007bff', color: 'white', borderRadius: '4px' }}>
-							School Admin Portal
-						</Link>
-					)}
-					
-					{user.role === 'system_admin' && (
-						<Link to="/system-admin" style={{ textDecoration: 'none', padding: '0.5rem 1rem', backgroundColor: '#28a745', color: 'white', borderRadius: '4px' }}>
-							System Admin Portal
-						</Link>
-					)}
+  return (
+    <nav
+      style={{
+        padding: '1rem',
+        backgroundColor: '#f8f9fa',
+        borderBottom: '1px solid #dee2e6',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}
+    >
+      {/* Left - Logo */}
+      <div
+        onClick={handleLogoClick}
+        style={{
+          cursor: 'pointer',
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: 'black'
+        }}
+      >
+        EduSearch
+      </div>
 
-					<span>Hello, {user.name} </span>
-					<button 
-						onClick={handleLogout}
-						style={{ 
-							padding: '0.5rem 1rem', 
-							backgroundColor: '#dc3545', 
-							color: 'white', 
-							border: 'none', 
-							borderRadius: '4px',
-							cursor: 'pointer'
-						}}
-					>
-						Logout
-					</button>
-				</div>
-			)}
+      {/* Center - Home */}
+      <div
+        onClick={handleLogoClick}
+        style={{
+          cursor: 'pointer',
+          color: '#007bff',
+          textDecoration: 'none',
+          fontSize: '1.1rem'
+        }}
+      >
+        Home
+      </div>
 
-			{!token && (
-				<Link to="/login" style={{ textDecoration: 'none', padding: '0.5rem 1rem', backgroundColor: '#007bff', color: 'white', borderRadius: '4px' }}>
-					Login
-				</Link>
-			)}
-		</nav>
-	);
+      {/* Right - User Info & Login/Logout */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {token && user ? (
+          <>
+            <span>Hello, {user.name}</span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Login
+          </button>
+        )}
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;
