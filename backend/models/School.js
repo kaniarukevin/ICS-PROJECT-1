@@ -4,10 +4,18 @@ const mongoose = require('mongoose');
 const schoolSchema = new mongoose.Schema({
 	name: { type: String, required: true },
 	description: { type: String, required: true },
+	
+	// UPDATED: Changed from single string to array of strings
 	schoolType: { 
-		type: String, 
+		type: [String], // Array of strings instead of single string
 		enum: ['Primary', 'Secondary', 'College', 'University', 'TVET'],
-		required: true 
+		required: true,
+		validate: {
+			validator: function(v) {
+				return v && v.length > 0; // Ensure at least one type is selected
+			},
+			message: 'At least one school type must be selected'
+		}
 	},
 	
 	// Location information
@@ -51,10 +59,16 @@ const schoolSchema = new mongoose.Schema({
 	// Curriculum
 	curriculum: [{ type: String }],
 	
-	// Grade levels
+	// Grade levels - UPDATED: More flexible to handle multiple school types
 	grades: {
 		from: { type: String },
-		to: { type: String }
+		to: { type: String },
+		details: [{ // Allow multiple grade ranges for different school types
+			schoolType: { type: String, enum: ['Primary', 'Secondary', 'College', 'University', 'TVET'] },
+			from: { type: String },
+			to: { type: String },
+			description: { type: String }
+		}]
 	},
 	
 	// Fee structure
@@ -95,7 +109,6 @@ const schoolSchema = new mongoose.Schema({
 	averageRating: { type: Number, min: 0, max: 5 },
 	totalRatings: { type: Number, default: 0 },
 	
-	// Fixed: Added missing comma and proper structure
 	ratingsList: [{
 		parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
 		overall: { type: Number, min: 0, max: 5 },
@@ -107,7 +120,7 @@ const schoolSchema = new mongoose.Schema({
 		ratedAt: { type: Date, default: Date.now }
 	}],
 
-	// Tour scheduling - Fixed: Added missing comma
+	// Tour scheduling
 	tourSchedule: {
 		availableDays: [{ 
 			type: String, 
@@ -156,6 +169,14 @@ schoolSchema.pre('save', function(next) {
 	next();
 });
 
-// Fixed: Proper model export with correct naming convention
-// Use 'School' as model name (singular, capitalized) and let Mongoose pluralize to 'schools'
+// UPDATED: Add method to get formatted school types
+schoolSchema.methods.getFormattedSchoolTypes = function() {
+	return this.schoolType.join(', ');
+};
+
+// UPDATED: Add method to check if school has specific type
+schoolSchema.methods.hasSchoolType = function(type) {
+	return this.schoolType.includes(type);
+};
+
 module.exports = mongoose.model('schools', schoolSchema);

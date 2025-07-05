@@ -23,7 +23,7 @@ const createSchoolAdmin = async (req, res) => {
 			
 			// School Information
 			schoolName,
-			schoolType,
+			schoolType, // This is now an array
 			description,
 			
 			// Location
@@ -56,6 +56,22 @@ const createSchoolAdmin = async (req, res) => {
 		if (!name || !email || !password || !schoolName || !schoolType) {
 			return res.status(400).json({ 
 				message: 'Name, email, password, school name, and school type are required' 
+			});
+		}
+
+		// Validate school types
+		if (!Array.isArray(schoolType) || schoolType.length === 0) {
+			return res.status(400).json({ 
+				message: 'Please select at least one school type' 
+			});
+		}
+
+		// Validate each school type
+		const validTypes = ['Primary', 'Secondary', 'College', 'University', 'TVET'];
+		const invalidTypes = schoolType.filter(type => !validTypes.includes(type));
+		if (invalidTypes.length > 0) {
+			return res.status(400).json({ 
+				message: `Invalid school types: ${invalidTypes.join(', ')}` 
 			});
 		}
 
@@ -103,7 +119,7 @@ const createSchoolAdmin = async (req, res) => {
 		const schoolData = {
 			name: schoolName.trim(),
 			description: description?.trim() || `${schoolName} - A quality educational institution`,
-			schoolType,
+			schoolType, // Array of selected types
 			
 			// Location
 			location: {
@@ -200,7 +216,8 @@ const createSchoolAdmin = async (req, res) => {
 
 		console.log('✅ School Admin created successfully:', {
 			user: user.email,
-			school: school.name
+			school: school.name,
+			schoolTypes: school.schoolType
 		});
 
 		// Send response (password is automatically excluded by toJSON)
@@ -211,7 +228,8 @@ const createSchoolAdmin = async (req, res) => {
 			school: {
 				id: school._id,
 				name: school.name,
-				type: school.schoolType,
+				type: school.schoolType, // Array of types
+				typeFormatted: school.schoolType.join(', '), // Human-readable format
 				isVerified: school.isVerified
 			}
 		});

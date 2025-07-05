@@ -2,8 +2,7 @@
 const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
 const School = require('../models/School');
-// Use your existing User model - adjust path if needed
-const User = require('../models/user'); // Note: lowercase 'user' to match your existing files
+const User = require('../models/user');
 
 // Dashboard - Get overview statistics
 const getDashboard = async (req, res) => {
@@ -57,7 +56,8 @@ const getDashboard = async (req, res) => {
 		const dashboardData = {
 			school: {
 				name: school.name,
-				type: school.schoolType,
+				type: school.schoolType, // This is now an array
+				typeFormatted: school.getFormattedSchoolTypes(), // Human-readable format
 				isVerified: school.isVerified
 			},
 			statistics: {
@@ -79,6 +79,73 @@ const getDashboard = async (req, res) => {
 	} catch (error) {
 		console.error('❌ Dashboard error:', error);
 		res.status(500).json({ message: 'Error fetching dashboard data', error: error.message });
+	}
+};
+
+// School Registration - NEW: Handle school registration with multiple types
+const registerSchool = async (req, res) => {
+	try {
+		const {
+			name,
+			description,
+			schoolType, // This should be an array now
+			location,
+			contact,
+			facilities,
+			curriculum,
+			grades,
+			fees,
+			tourSchedule
+		} = req.body;
+
+		// Validate school types
+		if (!Array.isArray(schoolType) || schoolType.length === 0) {
+			return res.status(400).json({ 
+				message: 'Please select at least one school type' 
+			});
+		}
+
+		// Validate each school type
+		const validTypes = ['Primary', 'Secondary', 'College', 'University', 'TVET'];
+		const invalidTypes = schoolType.filter(type => !validTypes.includes(type));
+		if (invalidTypes.length > 0) {
+			return res.status(400).json({ 
+				message: `Invalid school types: ${invalidTypes.join(', ')}` 
+			});
+		}
+
+		// Create new school
+		const school = new School({
+			name,
+			description,
+			schoolType, // Array of selected types
+			location,
+			contact,
+			facilities: facilities || [],
+			curriculum: curriculum || [],
+			grades,
+			fees,
+			tourSchedule,
+			adminId: req.user.id
+		});
+
+		await school.save();
+
+		console.log('✅ School registered:', school.name, 'Types:', school.schoolType);
+		res.status(201).json({
+			message: 'School registered successfully',
+			school: {
+				id: school._id,
+				name: school.name,
+				schoolType: school.schoolType,
+				typeFormatted: school.getFormattedSchoolTypes(),
+				isVerified: school.isVerified
+			}
+		});
+
+	} catch (error) {
+		console.error('❌ School registration error:', error);
+		res.status(500).json({ message: 'Error registering school', error: error.message });
 	}
 };
 
@@ -304,11 +371,19 @@ const updateSchoolProfile = async (req, res) => {
 		// Allow updating specific fields
 		const allowedUpdates = [
 			'description', 'contact', 'facilities', 'curriculum', 
-			'fees', 'tourSchedule', 'images'
+			'fees', 'tourSchedule', 'images', 'schoolType' // Added schoolType to allowed updates
 		];
 
 		allowedUpdates.forEach(field => {
 			if (req.body[field] !== undefined) {
+				// Special validation for schoolType updates
+				if (field === 'schoolType') {
+					if (!Array.isArray(req.body[field]) || req.body[field].length === 0) {
+						return res.status(400).json({ 
+							message: 'School type must be an array with at least one selection' 
+						});
+					}
+				}
 				school[field] = req.body[field];
 			}
 		});
@@ -417,6 +492,7 @@ const getAnalytics = async (req, res) => {
 
 module.exports = {
 	getDashboard,
+	registerSchool, // NEW: Added registerSchool function
 	getTours,
 	createTour,
 	updateTour,

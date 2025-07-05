@@ -1,4 +1,4 @@
-// frontend/src/components/auth/SchoolAdminRegistration.jsx (Enhanced with Fee Settings)
+// frontend/src/components/auth/SchoolAdminRegistration.jsx (Updated with School Type Checklist)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,7 +19,7 @@ const SchoolAdminRegistration = () => {
 		
 		// School Information
 		schoolName: '',
-		schoolType: '',
+		schoolType: [], // CHANGED: Now an array instead of string
 		description: '',
 		
 		// Location
@@ -41,7 +41,7 @@ const SchoolAdminRegistration = () => {
 			to: ''
 		},
 		
-		// Fee Structure (NEW)
+		// Fee Structure
 		fees: {
 			currency: 'KES',
 			tuition: {
@@ -57,12 +57,36 @@ const SchoolAdminRegistration = () => {
 	});
 
 	const schoolTypes = [
-		'Pre-Primary',
-		'Primary', 
-		'Secondary',
-		'College',
-		'University',
-		'TVET'
+		{ 
+			value: 'Primary', 
+			label: 'Primary School', 
+			description: 'Early childhood and primary education (K-6)',
+			icon: '🏫'
+		},
+		{ 
+			value: 'Secondary', 
+			label: 'Secondary School', 
+			description: 'Middle and high school education (7-12)',
+			icon: '🎓'
+		},
+		{ 
+			value: 'College', 
+			label: 'College', 
+			description: 'Higher education and undergraduate programs',
+			icon: '🏛️'
+		},
+		{ 
+			value: 'University', 
+			label: 'University', 
+			description: 'Advanced higher education and research',
+			icon: '🎓'
+		},
+		{ 
+			value: 'TVET', 
+			label: 'TVET Institution', 
+			description: 'Technical and Vocational Education and Training',
+			icon: '🔧'
+		}
 	];
 
 	const curriculumOptions = [
@@ -133,6 +157,15 @@ const SchoolAdminRegistration = () => {
 					}
 				}));
 			}
+		} else if (name === 'schoolType') {
+			// UPDATED: Handle school type as array
+			const updatedSchoolTypes = checked 
+				? [...formData.schoolType, value]
+				: formData.schoolType.filter(type => type !== value);
+			setFormData(prev => ({
+				...prev,
+				schoolType: updatedSchoolTypes
+			}));
 		} else if (name === 'curriculum') {
 			const updatedCurriculum = checked 
 				? [...formData.curriculum, value]
@@ -220,7 +253,10 @@ const SchoolAdminRegistration = () => {
 		
 		if (step === 2) {
 			if (!formData.schoolName.trim()) newErrors.schoolName = 'School name is required';
-			if (!formData.schoolType) newErrors.schoolType = 'School type is required';
+			// UPDATED: Validate school type array
+			if (!formData.schoolType || formData.schoolType.length === 0) {
+				newErrors.schoolType = 'Please select at least one school type';
+			}
 			if (!formData.city.trim()) newErrors.city = 'City is required';
 			if (!formData.state.trim()) newErrors.state = 'State/County is required';
 		}
@@ -322,6 +358,72 @@ const SchoolAdminRegistration = () => {
 			minimumFractionDigits: 0
 		});
 		return formatter.format(amount);
+	};
+
+	// UPDATED: School Type Checklist Component
+	const renderSchoolTypeChecklist = () => {
+		return (
+			<div className="form-group full-width">
+				<label>School Type *</label>
+				<p className="field-description">
+					Select all types that apply to your institution. You can choose multiple options.
+				</p>
+				
+				<div className="school-type-checklist">
+					{schoolTypes.map(type => {
+						const isChecked = formData.schoolType.includes(type.value);
+						return (
+							<div
+								key={type.value}
+								className={`school-type-option ${isChecked ? 'selected' : ''}`}
+								onClick={() => handleChange({
+									target: {
+										name: 'schoolType',
+										value: type.value,
+										checked: !isChecked
+									}
+								})}
+							>
+								<div className="option-checkbox">
+									<input
+										type="checkbox"
+										name="schoolType"
+										value={type.value}
+										checked={isChecked}
+										onChange={handleChange}
+									/>
+								</div>
+								<div className="option-content">
+									<div className="option-header">
+										<span className="option-icon">{type.icon}</span>
+										<span className="option-label">{type.label}</span>
+									</div>
+									<div className="option-description">{type.description}</div>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+				
+				{formData.schoolType.length > 0 && (
+					<div className="selected-types-summary">
+						<p><strong>Selected Types ({formData.schoolType.length}):</strong></p>
+						<div className="selected-types-tags">
+							{formData.schoolType.map(type => {
+								const typeInfo = schoolTypes.find(t => t.value === type);
+								return (
+									<span key={type} className="type-tag">
+										{typeInfo?.icon} {typeInfo?.label}
+									</span>
+								);
+							})}
+						</div>
+					</div>
+				)}
+				
+				{errors.schoolType && <span className="error">{errors.schoolType}</span>}
+			</div>
+		);
 	};
 
 	// Render step content
@@ -430,22 +532,8 @@ const SchoolAdminRegistration = () => {
 								{errors.schoolName && <span className="error">{errors.schoolName}</span>}
 							</div>
 
-							<div className="form-group">
-								<label htmlFor="schoolType">School Type *</label>
-								<select
-									id="schoolType"
-									name="schoolType"
-									value={formData.schoolType}
-									onChange={handleChange}
-									required
-								>
-									<option value="">Select school type</option>
-									{schoolTypes.map(type => (
-										<option key={type} value={type}>{type}</option>
-									))}
-								</select>
-								{errors.schoolType && <span className="error">{errors.schoolType}</span>}
-							</div>
+							{/* UPDATED: School Type Checklist */}
+							{renderSchoolTypeChecklist()}
 
 							<div className="form-group full-width">
 								<label htmlFor="description">School Description</label>
@@ -768,7 +856,8 @@ const SchoolAdminRegistration = () => {
 							<div className="review-group">
 								<h4>School Information</h4>
 								<p><strong>School Name:</strong> {formData.schoolName}</p>
-								<p><strong>Type:</strong> {formData.schoolType}</p>
+								{/* UPDATED: Display multiple school types */}
+								<p><strong>School Type(s):</strong> {formData.schoolType.length > 0 ? formData.schoolType.join(', ') : 'Not selected'}</p>
 								<p><strong>Location:</strong> {formData.city}, {formData.state}</p>
 								<p><strong>Description:</strong> {formData.description || 'Not provided'}</p>
 							</div>
@@ -998,6 +1087,108 @@ const SchoolAdminRegistration = () => {
 					grid-column: 1 / -1;
 				}
 
+				.field-description {
+					color: #666;
+					font-size: 0.9rem;
+					margin: 0.5rem 0 1rem 0;
+				}
+
+				/* UPDATED: School Type Checklist Styles */
+				.school-type-checklist {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+					gap: 1rem;
+					margin: 1rem 0;
+				}
+
+				.school-type-option {
+					display: flex;
+					align-items: flex-start;
+					gap: 1rem;
+					padding: 1rem;
+					border: 2px solid #e0e0e0;
+					border-radius: 8px;
+					background: white;
+					cursor: pointer;
+					transition: all 0.3s ease;
+				}
+
+				.school-type-option:hover {
+					border-color: #007bff;
+					transform: translateY(-2px);
+					box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+				}
+
+				.school-type-option.selected {
+					border-color: #007bff;
+					background: #f0f7ff;
+					box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+				}
+
+				.option-checkbox {
+					margin-top: 0.25rem;
+				}
+
+				.option-checkbox input[type="checkbox"] {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+				}
+
+				.option-content {
+					flex: 1;
+				}
+
+				.option-header {
+					display: flex;
+					align-items: center;
+					gap: 0.5rem;
+					margin-bottom: 0.5rem;
+				}
+
+				.option-icon {
+					font-size: 1.2rem;
+				}
+
+				.option-label {
+					font-weight: 600;
+					color: #333;
+				}
+
+				.option-description {
+					color: #666;
+					font-size: 0.9rem;
+					line-height: 1.4;
+				}
+
+				.selected-types-summary {
+					margin-top: 1rem;
+					padding: 1rem;
+					background: #e3f2fd;
+					border-radius: 6px;
+					border-left: 4px solid #007bff;
+				}
+
+				.selected-types-summary p {
+					margin: 0 0 0.5rem 0;
+					color: #007bff;
+				}
+
+				.selected-types-tags {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 0.5rem;
+				}
+
+				.type-tag {
+					background: #007bff;
+					color: white;
+					padding: 0.25rem 0.75rem;
+					border-radius: 20px;
+					font-size: 0.9rem;
+					font-weight: 500;
+				}
+
 				.section-header {
 					border-bottom: 2px solid #007bff;
 					padding-bottom: 0.5rem;
@@ -1185,6 +1376,10 @@ const SchoolAdminRegistration = () => {
 					}
 
 					.form-grid {
+						grid-template-columns: 1fr;
+					}
+
+					.school-type-checklist {
 						grid-template-columns: 1fr;
 					}
 
