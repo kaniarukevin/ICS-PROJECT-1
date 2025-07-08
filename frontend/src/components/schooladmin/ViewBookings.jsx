@@ -10,6 +10,22 @@ const ViewBookings = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
+  // Blue theme colors
+  const colors = {
+    primaryBlue: '#007bff',
+    darkBlue: '#0056b3',
+    lightBlue: '#e3f2fd',
+    successGreen: '#28a745',
+    warningYellow: '#ffc107',
+    dangerRed: '#dc3545',
+    infoTeal: '#17a2b8',
+    graySecondary: '#6c757d',
+    darkGray: '#2d2d2d',
+    lightGray: '#f8f9fa',
+    white: '#ffffff',
+    borderGray: '#e0e0e0'
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchTours();
@@ -81,12 +97,12 @@ const ViewBookings = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return '#28a745';
-      case 'pending': return '#ffc107';
-      case 'cancelled': return '#dc3545';
-      case 'completed': return '#17a2b8';
-      case 'no-show': return '#6c757d';
-      default: return '#6c757d';
+      case 'confirmed': return colors.successGreen;
+      case 'pending': return colors.warningYellow;
+      case 'cancelled': return colors.dangerRed;
+      case 'completed': return colors.infoTeal;
+      case 'no-show': return colors.graySecondary;
+      default: return colors.graySecondary;
     }
   };
 
@@ -107,16 +123,382 @@ const ViewBookings = () => {
     setShowDetails(true);
   };
 
+  // Styling objects
+  const wrapperStyle = {
+    padding: '2rem',
+    backgroundColor: '#f9fafe',
+    minHeight: '100vh',
+    fontFamily: '"Segoe UI", sans-serif'
+  };
+
+  const containerStyle = {
+    maxWidth: '1400px',
+    margin: '0 auto'
+  };
+
+  const headerStyle = {
+    marginBottom: '2rem',
+    background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+    color: colors.white,
+    padding: '2rem',
+    borderRadius: '12px',
+    boxShadow: '0 8px 25px rgba(0, 123, 255, 0.3)'
+  };
+
+  const headerTitleStyle = {
+    fontSize: '2.5rem',
+    fontWeight: '700',
+    marginBottom: '0.5rem',
+    textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+  };
+
+  const headerSubtitleStyle = {
+    fontSize: '1.2rem',
+    margin: 0,
+    opacity: 0.9
+  };
+
+  const statsGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '1.5rem',
+    marginBottom: '2rem'
+  };
+
+  const getStatCardStyle = (color) => ({
+    backgroundColor: colors.white,
+    padding: '1.5rem',
+    borderRadius: '12px',
+    border: `1px solid ${colors.borderGray}`,
+    textAlign: 'center',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden'
+  });
+
+  const statNumberStyle = (color) => ({
+    fontSize: '2.5rem',
+    fontWeight: '700',
+    color: color,
+    margin: '0.5rem 0',
+    textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  });
+
+  const statLabelStyle = {
+    color: '#666',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  };
+
+  const filtersCardStyle = {
+    backgroundColor: colors.white,
+    padding: '2rem',
+    borderRadius: '12px',
+    border: `1px solid ${colors.borderGray}`,
+    marginBottom: '2rem',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+  };
+
+  const filtersContainerStyle = {
+    display: 'flex',
+    gap: '2rem',
+    flexWrap: 'wrap',
+    alignItems: 'end'
+  };
+
+  const filterGroupStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    minWidth: '200px'
+  };
+
+  const labelStyle = {
+    fontWeight: '600',
+    color: colors.darkGray,
+    fontSize: '0.95rem'
+  };
+
+  const selectStyle = {
+    padding: '0.75rem 1rem',
+    border: `2px solid #e1e5e9`,
+    borderRadius: '8px',
+    fontSize: '0.9rem',
+    background: colors.white,
+    transition: 'all 0.3s ease',
+    cursor: 'pointer'
+  };
+
+  const refreshButtonStyle = {
+    padding: '0.75rem 1.5rem',
+    background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+    color: colors.white,
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 15px rgba(0, 123, 255, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
+  };
+
+  const bookingsGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))',
+    gap: '2rem'
+  };
+
+  const bookingCardStyle = {
+    backgroundColor: colors.white,
+    padding: '2rem',
+    borderRadius: '12px',
+    border: `1px solid ${colors.borderGray}`,
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease',
+    position: 'relative'
+  };
+
+  const cardHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '1.5rem'
+  };
+
+  const parentNameStyle = {
+    margin: 0,
+    color: colors.darkGray,
+    fontSize: '1.3rem',
+    fontWeight: '700'
+  };
+
+  const getStatusBadgeStyle = (status) => ({
+    padding: '0.5rem 1rem',
+    borderRadius: '25px',
+    fontSize: '0.8rem',
+    fontWeight: '700',
+    backgroundColor: getStatusColor(status) + '20',
+    color: getStatusColor(status),
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem'
+  });
+
+  const bookingDetailsStyle = {
+    fontSize: '0.95rem',
+    lineHeight: '1.6',
+    marginBottom: '1.5rem'
+  };
+
+  const detailItemStyle = {
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.5rem'
+  };
+
+  const detailLabelStyle = {
+    fontWeight: '600',
+    color: colors.darkGray,
+    minWidth: '80px'
+  };
+
+  const specialRequestStyle = {
+    backgroundColor: colors.lightBlue,
+    padding: '1rem',
+    borderRadius: '8px',
+    marginBottom: '1rem',
+    border: `1px solid ${colors.primaryBlue}20`
+  };
+
+  const adminNotesStyle = {
+    backgroundColor: '#fff3cd',
+    padding: '1rem',
+    borderRadius: '8px',
+    marginBottom: '1rem',
+    border: '1px solid #ffc107'
+  };
+
+  const actionsContainerStyle = {
+    display: 'flex',
+    gap: '0.75rem',
+    flexWrap: 'wrap'
+  };
+
+  const getActionButtonStyle = (type) => {
+    const styles = {
+      view: {
+        background: `linear-gradient(135deg, ${colors.infoTeal} 0%, #138496 100%)`,
+        boxShadow: '0 2px 4px rgba(23, 162, 184, 0.3)'
+      },
+      confirm: {
+        background: `linear-gradient(135deg, ${colors.successGreen} 0%, #1e7e34 100%)`,
+        boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+      },
+      cancel: {
+        background: `linear-gradient(135deg, ${colors.dangerRed} 0%, #c82333 100%)`,
+        boxShadow: '0 2px 4px rgba(220, 53, 69, 0.3)'
+      },
+      complete: {
+        background: `linear-gradient(135deg, ${colors.infoTeal} 0%, #138496 100%)`,
+        boxShadow: '0 2px 4px rgba(23, 162, 184, 0.3)'
+      },
+      noshow: {
+        background: `linear-gradient(135deg, ${colors.graySecondary} 0%, #495057 100%)`,
+        boxShadow: '0 2px 4px rgba(108, 117, 125, 0.3)'
+      }
+    };
+
+    return {
+      padding: '0.6rem 1rem',
+      color: colors.white,
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+      transition: 'all 0.3s ease',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      ...styles[type]
+    };
+  };
+
+  const emptyStateStyle = {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '4rem 2rem',
+    backgroundColor: colors.white,
+    borderRadius: '12px',
+    border: `1px solid ${colors.borderGray}`,
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+  };
+
+  const modalOverlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    backdropFilter: 'blur(4px)'
+  };
+
+  const modalContentStyle = {
+    backgroundColor: colors.white,
+    padding: '2.5rem',
+    borderRadius: '12px',
+    maxWidth: '700px',
+    width: '90%',
+    maxHeight: '85vh',
+    overflow: 'auto',
+    boxShadow: '0 20px 25px rgba(0,0,0,0.3)',
+    position: 'relative'
+  };
+
+  const modalHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '2rem',
+    paddingBottom: '1rem',
+    borderBottom: `2px solid ${colors.lightBlue}`
+  };
+
+  const modalTitleStyle = {
+    margin: 0,
+    color: colors.darkGray,
+    fontSize: '1.8rem',
+    fontWeight: '700'
+  };
+
+  const closeButtonStyle = {
+    backgroundColor: 'transparent',
+    border: 'none',
+    fontSize: '1.8rem',
+    cursor: 'pointer',
+    color: '#666',
+    padding: '0.5rem',
+    borderRadius: '50%',
+    transition: 'all 0.3s ease'
+  };
+
+  const sectionTitleStyle = {
+    color: colors.primaryBlue,
+    marginTop: '1.5rem',
+    marginBottom: '1rem',
+    fontSize: '1.2rem',
+    fontWeight: '700',
+    borderBottom: `2px solid ${colors.lightBlue}`,
+    paddingBottom: '0.5rem'
+  };
+
+  const textareaStyle = {
+    width: '100%',
+    padding: '1rem',
+    border: `2px solid #e1e5e9`,
+    borderRadius: '8px',
+    fontSize: '0.9rem',
+    resize: 'vertical',
+    fontFamily: 'inherit',
+    transition: 'all 0.3s ease',
+    background: '#fafbfc',
+    boxSizing: 'border-box'
+  };
+
+  const modalActionsStyle = {
+    display: 'flex',
+    gap: '1rem',
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+    marginTop: '2rem',
+    paddingTop: '1rem',
+    borderTop: `1px solid ${colors.borderGray}`
+  };
+
+  const loadingStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '400px',
+    fontSize: '1.2rem',
+    color: '#666',
+    background: colors.white,
+    borderRadius: '12px',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    gap: '1rem'
+  };
+
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '400px',
-        fontSize: '1.1rem'
-      }}>
-        ⏳ Loading bookings...
+      <div className="vb-wrapper" style={wrapperStyle}>
+        <div className="vb-container" style={containerStyle}>
+          <div className="vb-loading" style={loadingStyle}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: `4px solid ${colors.primaryBlue}`,
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            ⏳ Loading bookings...
+          </div>
+        </div>
       </div>
     );
   }
@@ -131,559 +513,608 @@ const ViewBookings = () => {
   };
 
   return (
-    <div style={{ padding: '2rem', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ color: '#333', marginBottom: '0.5rem' }}>📅 View Bookings</h1>
-        <p style={{ color: '#666', margin: 0 }}>Manage and track all tour bookings</p>
-      </div>
+    <div className="vb-wrapper" style={wrapperStyle}>
+      <div className="vb-container" style={containerStyle}>
+        {/* Header */}
+        <div className="vb-header" style={headerStyle}>
+          <h1 className="vb-header-title" style={headerTitleStyle}>
+            📅 View Bookings
+          </h1>
+          <p className="vb-header-subtitle" style={headerSubtitleStyle}>
+            Manage and track all tour bookings
+          </p>
+        </div>
 
-      {/* Statistics */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-        gap: '1rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#007bff' }}>
-            {stats.total}
-          </div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Total Bookings</div>
-        </div>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ffc107' }}>
-            {stats.pending}
-          </div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Pending</div>
-        </div>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#28a745' }}>
-            {stats.confirmed}
-          </div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Confirmed</div>
-        </div>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#17a2b8' }}>
-            {stats.completed}
-          </div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Completed</div>
-        </div>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1rem', 
-          borderRadius: '8px',
-          border: '1px solid #e0e0e0',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#dc3545' }}>
-            {stats.cancelled}
-          </div>
-          <div style={{ color: '#666', fontSize: '0.9rem' }}>Cancelled</div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div style={{ 
-        backgroundColor: 'white', 
-        padding: '1.5rem', 
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0',
-        marginBottom: '2rem'
-      }}>
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Filter by Status:
-            </label>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              style={{
-                padding: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '0.9rem'
-              }}
-            >
-              <option value="all">All Statuses ({stats.total})</option>
-              <option value="pending">Pending ({stats.pending})</option>
-              <option value="confirmed">Confirmed ({stats.confirmed})</option>
-              <option value="cancelled">Cancelled ({stats.cancelled})</option>
-              <option value="completed">Completed ({stats.completed})</option>
-            </select>
+        {/* Statistics */}
+        <div className="vb-stats-grid" style={statsGridStyle}>
+          <div 
+            className="vb-stat-card"
+            style={getStatCardStyle(colors.primaryBlue)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-4px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            }}
+          >
+            <div className="vb-stat-number" style={statNumberStyle(colors.primaryBlue)}>
+              {stats.total}
+            </div>
+            <div className="vb-stat-label" style={statLabelStyle}>Total Bookings</div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Filter by Tour:
-            </label>
-            <select
-              value={tourFilter}
-              onChange={(e) => setTourFilter(e.target.value)}
-              style={{
-                padding: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '0.9rem'
-              }}
-            >
-              <option value="all">All Tours</option>
-              {tours.map(tour => (
-                <option key={tour._id} value={tour._id}>
-                  {tour.title} - {new Date(tour.date).toLocaleDateString()}
-                </option>
-              ))}
-            </select>
+          <div 
+            className="vb-stat-card"
+            style={getStatCardStyle(colors.warningYellow)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-4px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            }}
+          >
+            <div className="vb-stat-number" style={statNumberStyle(colors.warningYellow)}>
+              {stats.pending}
+            </div>
+            <div className="vb-stat-label" style={statLabelStyle}>Pending</div>
           </div>
 
-          <div style={{ marginLeft: 'auto' }}>
-            <button
-              onClick={fetchBookings}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.9rem'
-              }}
-            >
-              🔄 Refresh
-            </button>
+          <div 
+            className="vb-stat-card"
+            style={getStatCardStyle(colors.successGreen)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-4px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            }}
+          >
+            <div className="vb-stat-number" style={statNumberStyle(colors.successGreen)}>
+              {stats.confirmed}
+            </div>
+            <div className="vb-stat-label" style={statLabelStyle}>Confirmed</div>
+          </div>
+
+          <div 
+            className="vb-stat-card"
+            style={getStatCardStyle(colors.infoTeal)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-4px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            }}
+          >
+            <div className="vb-stat-number" style={statNumberStyle(colors.infoTeal)}>
+              {stats.completed}
+            </div>
+            <div className="vb-stat-label" style={statLabelStyle}>Completed</div>
+          </div>
+
+          <div 
+            className="vb-stat-card"
+            style={getStatCardStyle(colors.dangerRed)}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-4px)';
+              e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            }}
+          >
+            <div className="vb-stat-number" style={statNumberStyle(colors.dangerRed)}>
+              {stats.cancelled}
+            </div>
+            <div className="vb-stat-label" style={statLabelStyle}>Cancelled</div>
           </div>
         </div>
-      </div>
 
-      {/* Bookings List */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
-        gap: '1.5rem'
-      }}>
-        {filteredBookings.length > 0 ? (
-          filteredBookings.map(booking => (
-            <div key={booking._id} style={{ 
-              backgroundColor: 'white', 
-              padding: '1.5rem', 
-              borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'flex-start',
-                marginBottom: '1rem'
-              }}>
-                <h3 style={{ margin: 0, color: '#333' }}>
-                  {booking.parentId?.name || 'Parent'}
-                </h3>
-                <span style={{ 
-                  padding: '0.3rem 0.7rem',
-                  borderRadius: '12px',
-                  fontSize: '0.8rem',
-                  fontWeight: '500',
-                  backgroundColor: getStatusColor(booking.status) + '20',
-                  color: getStatusColor(booking.status)
-                }}>
-                  {getStatusIcon(booking.status)} {booking.status.toUpperCase()}
-                </span>
+        {/* Filters */}
+        <div className="vb-filters-card" style={filtersCardStyle}>
+          <div className="vb-filters-container" style={filtersContainerStyle}>
+            <div className="vb-filter-group" style={filterGroupStyle}>
+              <label className="vb-label" style={labelStyle}>
+                Filter by Status:
+              </label>
+              <select
+                className="vb-select"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                style={selectStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = colors.primaryBlue;
+                  e.target.style.boxShadow = `0 0 0 3px rgba(0, 123, 255, 0.15)`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e1e5e9';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <option value="all">All Statuses ({stats.total})</option>
+                <option value="pending">Pending ({stats.pending})</option>
+                <option value="confirmed">Confirmed ({stats.confirmed})</option>
+                <option value="cancelled">Cancelled ({stats.cancelled})</option>
+                <option value="completed">Completed ({stats.completed})</option>
+              </select>
+            </div>
+
+            <div className="vb-filter-group" style={filterGroupStyle}>
+              <label className="vb-label" style={labelStyle}>
+                Filter by Tour:
+              </label>
+              <select
+                className="vb-select"
+                value={tourFilter}
+                onChange={(e) => setTourFilter(e.target.value)}
+                style={selectStyle}
+                onFocus={(e) => {
+                  e.target.style.borderColor = colors.primaryBlue;
+                  e.target.style.boxShadow = `0 0 0 3px rgba(0, 123, 255, 0.15)`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e1e5e9';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <option value="all">All Tours</option>
+                {tours.map(tour => (
+                  <option key={tour._id} value={tour._id}>
+                    {tour.title} - {new Date(tour.date).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginLeft: 'auto' }}>
+              <button
+                className="vb-refresh-btn"
+                onClick={fetchBookings}
+                style={refreshButtonStyle}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(0, 123, 255, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(0, 123, 255, 0.3)';
+                }}
+              >
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bookings List */}
+        <div className="vb-bookings-grid" style={bookingsGridStyle}>
+          {filteredBookings.length > 0 ? (
+            filteredBookings.map(booking => (
+              <div 
+                key={booking._id} 
+                className="vb-booking-card" 
+                style={bookingCardStyle}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-4px)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                }}
+              >
+                <div className="vb-card-header" style={cardHeaderStyle}>
+                  <h3 className="vb-parent-name" style={parentNameStyle}>
+                    {booking.parentId?.name || 'Parent'}
+                  </h3>
+                  <span className="vb-status-badge" style={getStatusBadgeStyle(booking.status)}>
+                    {getStatusIcon(booking.status)} {booking.status}
+                  </span>
+                </div>
+
+                <div className="vb-booking-details" style={bookingDetailsStyle}>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>📧 Email:</span>
+                    <span>{booking.parentEmail}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>📱 Phone:</span>
+                    <span>{booking.parentPhone}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>🎯 Tour:</span>
+                    <span>{booking.tourId?.title || 'Tour not found'}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>📅 Date:</span>
+                    <span>{booking.tourId ? new Date(booking.tourId.date).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>⏰ Time:</span>
+                    <span>{booking.selectedTimeSlot?.startTime || 'N/A'} - {booking.selectedTimeSlot?.endTime || 'N/A'}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>👥 Guests:</span>
+                    <span>{booking.numberOfGuests}</span>
+                  </div>
+                  <div className="vb-detail-item" style={detailItemStyle}>
+                    <span style={detailLabelStyle}>📝 Booked:</span>
+                    <span>{new Date(booking.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                {booking.specialRequests && (
+                  <div className="vb-special-requests" style={specialRequestStyle}>
+                    <strong style={{ fontSize: '0.9rem', color: colors.primaryBlue }}>💬 Special Requests:</strong>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#666' }}>
+                      {booking.specialRequests}
+                    </p>
+                  </div>
+                )}
+
+                {booking.adminNotes && (
+                  <div className="vb-admin-notes" style={adminNotesStyle}>
+                    <strong style={{ fontSize: '0.9rem', color: '#856404' }}>📝 Admin Notes:</strong>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#856404' }}>
+                      {booking.adminNotes}
+                    </p>
+                  </div>
+                )}
+
+                <div className="vb-actions-container" style={actionsContainerStyle}>
+                  <button 
+                    className="vb-view-btn"
+                    onClick={() => showBookingDetails(booking)}
+                    style={getActionButtonStyle('view')}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 4px 8px rgba(23, 162, 184, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 2px 4px rgba(23, 162, 184, 0.3)';
+                    }}
+                  >
+                    👁️ View Details
+                  </button>
+
+                  {booking.status === 'pending' && (
+                    <>
+                      <button 
+                        className="vb-confirm-btn"
+                        onClick={() => handleStatusUpdate(booking._id, 'confirmed')}
+                        style={getActionButtonStyle('confirm')}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.3)';
+                        }}
+                      >
+                        ✅ Confirm
+                      </button>
+                      <button 
+                        className="vb-cancel-btn"
+                        onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
+                        style={getActionButtonStyle('cancel')}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(220, 53, 69, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(220, 53, 69, 0.3)';
+                        }}
+                      >
+                        ❌ Cancel
+                      </button>
+                    </>
+                  )}
+
+                  {booking.status === 'confirmed' && (
+                    <>
+                      <button 
+                        className="vb-complete-btn"
+                        onClick={() => handleStatusUpdate(booking._id, 'completed')}
+                        style={getActionButtonStyle('complete')}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(23, 162, 184, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(23, 162, 184, 0.3)';
+                        }}
+                      >
+                        🎉 Mark Complete
+                      </button>
+                      <button 
+                        className="vb-noshow-btn"
+                        onClick={() => handleStatusUpdate(booking._id, 'no-show')}
+                        style={getActionButtonStyle('noshow')}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(108, 117, 125, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(108, 117, 125, 0.3)';
+                        }}
+                      >
+                        👻 No Show
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="vb-empty-state" style={emptyStateStyle}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.6 }}>📅</div>
+              <h3 style={{ color: colors.darkGray, marginBottom: '0.5rem' }}>No bookings found</h3>
+              <p style={{ color: '#666' }}>
+                {filter === 'all' && tourFilter === 'all' 
+                  ? 'No bookings have been made yet.' 
+                  : 'No bookings match your current filters.'
+                }
+              </p>
+            </div>
+          )}
+        </div>
 
-              <div style={{ 
-                fontSize: '0.9rem',
-                lineHeight: '1.5',
-                marginBottom: '1rem'
-              }}>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>📧 Email:</strong> {booking.parentEmail}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>📱 Phone:</strong> {booking.parentPhone}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>🎯 Tour:</strong> {booking.tourId?.title || 'Tour not found'}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>📅 Date:</strong> {booking.tourId ? new Date(booking.tourId.date).toLocaleDateString() : 'N/A'}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>⏰ Time:</strong> {booking.selectedTimeSlot?.startTime || 'N/A'} - {booking.selectedTimeSlot?.endTime || 'N/A'}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>👥 Guests:</strong> {booking.numberOfGuests}
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>📝 Booked:</strong> {new Date(booking.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              {booking.specialRequests && (
-                <div style={{ 
-                  backgroundColor: '#f8f9fa',
-                  padding: '0.75rem',
-                  borderRadius: '4px',
-                  marginBottom: '1rem'
-                }}>
-                  <strong style={{ fontSize: '0.9rem' }}>💬 Special Requests:</strong>
-                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#666' }}>
-                    {booking.specialRequests}
-                  </p>
-                </div>
-              )}
-
-              {booking.adminNotes && (
-                <div style={{ 
-                  backgroundColor: '#fff3cd',
-                  padding: '0.75rem',
-                  borderRadius: '4px',
-                  marginBottom: '1rem'
-                }}>
-                  <strong style={{ fontSize: '0.9rem' }}>📝 Admin Notes:</strong>
-                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#856404' }}>
-                    {booking.adminNotes}
-                  </p>
-                </div>
-              )}
-
-              <div style={{ 
-                display: 'flex', 
-                gap: '0.5rem', 
-                flexWrap: 'wrap'
-              }}>
-                <button 
-                  onClick={() => showBookingDetails(booking)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
+        {/* Booking Details Modal */}
+        {showDetails && selectedBooking && (
+          <div className="vb-modal-overlay" style={modalOverlayStyle}>
+            <div className="vb-modal-content" style={modalContentStyle}>
+              <div className="vb-modal-header" style={modalHeaderStyle}>
+                <h2 className="vb-modal-title" style={modalTitleStyle}>
+                  📋 Booking Details
+                </h2>
+                <button
+                  className="vb-close-btn"
+                  onClick={() => setShowDetails(false)}
+                  style={closeButtonStyle}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#f0f0f0';
+                    e.target.style.color = colors.dangerRed;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#666';
                   }}
                 >
-                  👁️ View Details
+                  ✕
                 </button>
+              </div>
 
-                {booking.status === 'pending' && (
+              <div style={{ lineHeight: '1.6' }}>
+                <h3 style={sectionTitleStyle}>👤 Parent Information</h3>
+                <div style={detailItemStyle}><strong>Name:</strong> {selectedBooking.parentId?.name || 'N/A'}</div>
+                <div style={detailItemStyle}><strong>Email:</strong> {selectedBooking.parentEmail}</div>
+                <div style={detailItemStyle}><strong>Phone:</strong> {selectedBooking.parentPhone}</div>
+                
+                <h3 style={sectionTitleStyle}>🎯 Tour Information</h3>
+                <div style={detailItemStyle}><strong>Tour:</strong> {selectedBooking.tourId?.title || 'Tour not found'}</div>
+                {selectedBooking.tourId && (
                   <>
-                    <button 
-                      onClick={() => handleStatusUpdate(booking._id, 'confirmed')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      ✅ Confirm
-                    </button>
-                    <button 
-                      onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      ❌ Cancel
-                    </button>
+                    <div style={detailItemStyle}><strong>Date:</strong> {new Date(selectedBooking.tourId.date).toLocaleDateString()}</div>
+                    <div style={detailItemStyle}><strong>Time:</strong> {selectedBooking.selectedTimeSlot?.startTime || 'N/A'} - {selectedBooking.selectedTimeSlot?.endTime || 'N/A'}</div>
                   </>
                 )}
-
-                {booking.status === 'confirmed' && (
-                  <>
-                    <button 
-                      onClick={() => handleStatusUpdate(booking._id, 'completed')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#17a2b8',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      🎉 Mark Complete
-                    </button>
-                    <button 
-                      onClick={() => handleStatusUpdate(booking._id, 'no-show')}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#6c757d',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      👻 No Show
-                    </button>
-                  </>
+                <div style={detailItemStyle}><strong>Number of Guests:</strong> {selectedBooking.numberOfGuests}</div>
+                
+                <h3 style={sectionTitleStyle}>📊 Booking Status</h3>
+                <div style={detailItemStyle}>
+                  <strong>Status:</strong>
+                  <span style={{
+                    marginLeft: '0.5rem',
+                    ...getStatusBadgeStyle(selectedBooking.status)
+                  }}>
+                    {getStatusIcon(selectedBooking.status)} {selectedBooking.status.toUpperCase()}
+                  </span>
+                </div>
+                <div style={detailItemStyle}><strong>Booked On:</strong> {new Date(selectedBooking.createdAt).toLocaleString()}</div>
+                {selectedBooking.confirmedAt && (
+                  <div style={detailItemStyle}><strong>Confirmed On:</strong> {new Date(selectedBooking.confirmedAt).toLocaleString()}</div>
+                )}
+                {selectedBooking.cancelledAt && (
+                  <div style={detailItemStyle}><strong>Cancelled On:</strong> {new Date(selectedBooking.cancelledAt).toLocaleString()}</div>
                 )}
               </div>
+
+              {selectedBooking.specialRequests && (
+                <div style={specialRequestStyle}>
+                  <strong style={{ color: colors.primaryBlue }}>💬 Special Requests:</strong>
+                  <p style={{ margin: '0.5rem 0 0 0' }}>{selectedBooking.specialRequests}</p>
+                </div>
+              )}
+
+              <div style={{ margin: '1.5rem 0' }}>
+                <label style={labelStyle}>
+                  📝 Admin Notes:
+                </label>
+                <textarea
+                  className="vb-admin-textarea"
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  placeholder="Add notes about this booking..."
+                  rows="3"
+                  style={textareaStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = colors.primaryBlue;
+                    e.target.style.boxShadow = `0 0 0 3px rgba(0, 123, 255, 0.15)`;
+                    e.target.style.background = colors.white;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e1e5e9';
+                    e.target.style.boxShadow = 'none';
+                    e.target.style.background = '#fafbfc';
+                  }}
+                />
+              </div>
+
+              <div className="vb-modal-actions" style={modalActionsStyle}>
+                {selectedBooking.status === 'pending' && (
+                  <>
+                    <button 
+                      className="vb-modal-confirm-btn"
+                      onClick={() => handleStatusUpdate(selectedBooking._id, 'confirmed')}
+                      style={{...getActionButtonStyle('confirm'), padding: '0.75rem 1.5rem'}}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.3)';
+                      }}
+                    >
+                      ✅ Confirm Booking
+                    </button>
+                    <button 
+                      className="vb-modal-cancel-btn"
+                      onClick={() => handleStatusUpdate(selectedBooking._id, 'cancelled')}
+                      style={{...getActionButtonStyle('cancel'), padding: '0.75rem 1.5rem'}}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(220, 53, 69, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(220, 53, 69, 0.3)';
+                      }}
+                    >
+                      ❌ Cancel Booking
+                    </button>
+                  </>
+                )}
+
+                {selectedBooking.status === 'confirmed' && (
+                  <>
+                    <button 
+                      className="vb-modal-complete-btn"
+                      onClick={() => handleStatusUpdate(selectedBooking._id, 'completed')}
+                      style={{...getActionButtonStyle('complete'), padding: '0.75rem 1.5rem'}}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(23, 162, 184, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(23, 162, 184, 0.3)';
+                      }}
+                    >
+                      🎉 Mark as Completed
+                    </button>
+                    <button 
+                      className="vb-modal-noshow-btn"
+                      onClick={() => handleStatusUpdate(selectedBooking._id, 'no-show')}
+                      style={{...getActionButtonStyle('noshow'), padding: '0.75rem 1.5rem'}}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(108, 117, 125, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(108, 117, 125, 0.3)';
+                      }}
+                    >
+                      👻 Mark as No-Show
+                    </button>
+                  </>
+                )}
+
+                <button
+                  className="vb-modal-close-btn"
+                  onClick={() => setShowDetails(false)}
+                  style={{...getActionButtonStyle('noshow'), padding: '0.75rem 1.5rem'}}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(108, 117, 125, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(108, 117, 125, 0.3)';
+                  }}
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          ))
-        ) : (
-          <div style={{ 
-            gridColumn: '1 / -1',
-            textAlign: 'center', 
-            padding: '3rem',
-            color: '#666'
-          }}>
-            <h3>No bookings found</h3>
-            <p>
-              {filter === 'all' && tourFilter === 'all' 
-                ? 'No bookings have been made yet.' 
-                : 'No bookings match your current filters.'
-              }
-            </p>
           </div>
         )}
       </div>
 
-      {/* Booking Details Modal */}
-      {showDetails && selectedBooking && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '8px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto'
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '1.5rem'
-            }}>
-              <h2 style={{ margin: 0, color: '#333' }}>
-                📋 Booking Details
-              </h2>
-              <button
-                onClick={() => setShowDetails(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  color: '#666'
-                }}
-              >
-                ✕
-              </button>
-            </div>
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
 
-            <div style={{ lineHeight: '1.6', marginBottom: '1.5rem' }}>
-              <h3 style={{ color: '#007bff', marginBottom: '1rem' }}>Parent Information</h3>
-              <div><strong>Name:</strong> {selectedBooking.parentId?.name || 'N/A'}</div>
-              <div><strong>Email:</strong> {selectedBooking.parentEmail}</div>
-              <div><strong>Phone:</strong> {selectedBooking.parentPhone}</div>
-              
-              <h3 style={{ color: '#007bff', marginTop: '1.5rem', marginBottom: '1rem' }}>Tour Information</h3>
-              <div><strong>Tour:</strong> {selectedBooking.tourId?.title || 'Tour not found'}</div>
-              {selectedBooking.tourId && (
-                <>
-                  <div><strong>Date:</strong> {new Date(selectedBooking.tourId.date).toLocaleDateString()}</div>
-                  <div><strong>Time:</strong> {selectedBooking.selectedTimeSlot?.startTime || 'N/A'} - {selectedBooking.selectedTimeSlot?.endTime || 'N/A'}</div>
-                </>
-              )}
-              <div><strong>Number of Guests:</strong> {selectedBooking.numberOfGuests}</div>
-              
-              <h3 style={{ color: '#007bff', marginTop: '1.5rem', marginBottom: '1rem' }}>Booking Status</h3>
-              <div><strong>Status:</strong> 
-                <span style={{
-                  marginLeft: '0.5rem',
-                  padding: '0.3rem 0.7rem',
-                  borderRadius: '12px',
-                  fontSize: '0.8rem',
-                  backgroundColor: getStatusColor(selectedBooking.status) + '20',
-                  color: getStatusColor(selectedBooking.status)
-                }}>
-                  {getStatusIcon(selectedBooking.status)} {selectedBooking.status.toUpperCase()}
-                </span>
-              </div>
-              <div><strong>Booked On:</strong> {new Date(selectedBooking.createdAt).toLocaleString()}</div>
-              {selectedBooking.confirmedAt && (
-                <div><strong>Confirmed On:</strong> {new Date(selectedBooking.confirmedAt).toLocaleString()}</div>
-              )}
-              {selectedBooking.cancelledAt && (
-                <div><strong>Cancelled On:</strong> {new Date(selectedBooking.cancelledAt).toLocaleString()}</div>
-              )}
-            </div>
+        @media (max-width: 768px) {
+          .vb-stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+          }
+          
+          .vb-bookings-grid {
+            grid-template-columns: 1fr !important;
+          }
+          
+          .vb-filters-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          
+          .vb-filter-group {
+            min-width: 100% !important;
+          }
+          
+          .vb-header {
+            padding: 1.5rem !important;
+          }
+          
+          .vb-header-title {
+            font-size: 2rem !important;
+          }
+        }
 
-            {selectedBooking.specialRequests && (
-              <div style={{ 
-                backgroundColor: '#f8f9fa',
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1rem'
-              }}>
-                <strong>💬 Special Requests:</strong>
-                <p style={{ margin: '0.5rem 0 0 0' }}>{selectedBooking.specialRequests}</p>
-              </div>
-            )}
-
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                📝 Admin Notes:
-              </label>
-              <textarea
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add notes about this booking..."
-                rows="3"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '0.9rem',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-
-            <div style={{ 
-              display: 'flex', 
-              gap: '1rem',
-              justifyContent: 'flex-end',
-              flexWrap: 'wrap'
-            }}>
-              {selectedBooking.status === 'pending' && (
-                <>
-                  <button 
-                    onClick={() => handleStatusUpdate(selectedBooking._id, 'confirmed')}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      backgroundColor: '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    ✅ Confirm Booking
-                  </button>
-                  <button 
-                    onClick={() => handleStatusUpdate(selectedBooking._id, 'cancelled')}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      backgroundColor: '#dc3545',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    ❌ Cancel Booking
-                  </button>
-                </>
-              )}
-
-              {selectedBooking.status === 'confirmed' && (
-                <>
-                  <button 
-                    onClick={() => handleStatusUpdate(selectedBooking._id, 'completed')}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      backgroundColor: '#17a2b8',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    🎉 Mark as Completed
-                  </button>
-                  <button 
-                    onClick={() => handleStatusUpdate(selectedBooking._id, 'no-show')}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      backgroundColor: '#6c757d',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    👻 Mark as No-Show
-                  </button>
-                </>
-              )}
-
-              <button
-                onClick={() => setShowDetails(false)}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem'
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        @media (max-width: 480px) {
+          .vb-wrapper {
+            padding: 1rem !important;
+          }
+          
+          .vb-stats-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          
+          .vb-booking-card {
+            padding: 1.5rem !important;
+          }
+          
+          .vb-modal-content {
+            padding: 2rem !important;
+            width: 95% !important;
+          }
+          
+          .vb-actions-container {
+            flex-direction: column !important;
+          }
+          
+          .vb-modal-actions {
+            flex-direction: column !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

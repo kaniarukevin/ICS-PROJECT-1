@@ -21,6 +21,20 @@ const ManageTours = () => {
 		timeSlots: [{ startTime: '' }]
 	});
 
+	// Theme colors - Blue scheme
+	const colors = {
+		primaryBlue: '#007bff',
+		darkBlue: '#0056b3',
+		lightBlue: '#e3f2fd',
+		successGreen: '#28a745',
+		dangerRed: '#dc3545',
+		warningOrange: '#fd7e14',
+		darkGray: '#2d2d2d',
+		lightGray: '#f8f9fa',
+		white: '#ffffff',
+		borderGray: '#ddd'
+	};
+
 	useEffect(() => {
 		fetchTours();
 	}, []);
@@ -173,167 +187,605 @@ const ManageTours = () => {
 		}
 	};
 
-	if (loading) return <div style={{ padding: '2rem' }}>⏳ Loading tours...</div>;
+	// Styling objects
+	const wrapperStyle = {
+		padding: '2rem',
+		backgroundColor: '#f9fafe',
+		minHeight: '100vh',
+		fontFamily: '"Segoe UI", sans-serif'
+	};
 
-	return (
-		<div style={{ padding: '2rem', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-			<h2 style={{ marginBottom: '1rem', color: '#333' }}>🎯 Manage School Tours</h2>
+	const containerStyle = {
+		maxWidth: '1200px',
+		margin: '0 auto'
+	};
 
-			{/* Create Button */}
-			<button
-				onClick={() => showForm ? resetForm() : setShowForm(true)}
-				style={{
-					backgroundColor: showForm ? '#dc3545' : '#007bff',
-					color: 'white',
-					padding: '0.6rem 1.2rem',
-					border: 'none',
-					borderRadius: '6px',
-					cursor: 'pointer',
-					marginBottom: '1.5rem'
-				}}
-			>
-				{showForm ? '✖ Cancel' : '➕ Create New Tour'}
-			</button>
+	const headerStyle = {
+		fontSize: '2.5rem',
+		fontWeight: '700',
+		marginBottom: '2rem',
+		color: colors.darkGray,
+		textAlign: 'center',
+		background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+		WebkitBackgroundClip: 'text',
+		WebkitTextFillColor: 'transparent',
+		backgroundClip: 'text'
+	};
 
-			{/* Filter Buttons */}
-			<div style={{ marginBottom: '1.5rem' }}>
-				{['all', 'active', 'inactive', 'upcoming'].map((f) => (
-					<button
-						key={f}
-						onClick={() => setFilter(f)}
-						style={{
-							marginRight: '1rem',
-							padding: '0.5rem 1rem',
-							border: '1px solid #ccc',
-							borderRadius: '20px',
-							backgroundColor: filter === f ? '#007bff' : 'white',
-							color: filter === f ? 'white' : '#333',
-							cursor: 'pointer',
-							fontWeight: filter === f ? 'bold' : 'normal'
-						}}
-					>
-						{f.toUpperCase()}
-					</button>
-				))}
-			</div>
+	const createButtonStyle = {
+		background: showForm 
+			? `linear-gradient(135deg, ${colors.dangerRed} 0%, #c82333 100%)`
+			: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+		color: colors.white,
+		padding: '1rem 2rem',
+		border: 'none',
+		borderRadius: '12px',
+		cursor: 'pointer',
+		marginBottom: '2rem',
+		fontSize: '1.1rem',
+		fontWeight: '600',
+		boxShadow: showForm 
+			? '0 4px 15px rgba(220, 53, 69, 0.3)'
+			: '0 4px 15px rgba(0, 123, 255, 0.3)',
+		transition: 'all 0.3s ease',
+		display: 'flex',
+		alignItems: 'center',
+		gap: '0.5rem'
+	};
 
-			{/* Tour Form */}
-			{showForm && (
-				<form onSubmit={handleSubmit} style={{ background: '#fff', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #ccc' }}>
-					<input
-						type="text"
-						placeholder="📛 Title"
-						value={formData.title}
-						required
-						onChange={e => setFormData({ ...formData, title: e.target.value })}
-						style={inputStyle}
-					/>
-					<textarea
-						placeholder="📝 Description"
-						value={formData.description}
-						required
-						onChange={e => setFormData({ ...formData, description: e.target.value })}
-						style={textAreaStyle}
-					/>
-					<input type="date" value={formData.date} required onChange={e => setFormData({ ...formData, date: e.target.value })} style={inputStyle} />
-					<input type="number" placeholder="👥 Max Capacity" value={formData.maxCapacity} required onChange={e => setFormData({ ...formData, maxCapacity: e.target.value })} style={inputStyle} />
-					<select value={formData.duration} onChange={e => setFormData({ ...formData, duration: e.target.value })} style={inputStyle}>
-						<option value="60">⏱️ 60 minutes</option>
-						<option value="90">⏱️ 90 minutes</option>
-						<option value="120">⏱️ 120 minutes</option>
-					</select>
+	const filterContainerStyle = {
+		marginBottom: '2rem',
+		display: 'flex',
+		gap: '1rem',
+		flexWrap: 'wrap'
+	};
 
-					{/* Time Slots */}
-					<label><strong>🕒 Time Slots</strong></label>
-					{formData.timeSlots.map((slot, i) => (
-						<div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-							<input
-								type="time"
-								value={slot.startTime}
-								required
-								onChange={(e) => {
-									const updated = [...formData.timeSlots];
-									updated[i].startTime = e.target.value;
-									setFormData({ ...formData, timeSlots: updated });
-								}}
-								style={{ ...inputStyle, width: '150px' }}
-							/>
-							<span>➡ Ends at {slot.startTime ? calculateEndTime(slot.startTime, formData.duration) : '--:--'}</span>
-							{formData.timeSlots.length > 1 && (
-								<button type="button" onClick={() => {
-									setFormData({ ...formData, timeSlots: formData.timeSlots.filter((_, idx) => idx !== i) });
-								}}>❌ Remove</button>
-							)}
-						</div>
-					))}
-					{formData.timeSlots.length < 3 && (
-						<button type="button" onClick={() =>
-							setFormData({ ...formData, timeSlots: [...formData.timeSlots, { startTime: '' }] })
-						}>➕ Add Slot</button>
-					)}
+	const getFilterButtonStyle = (f) => ({
+		padding: '0.75rem 1.5rem',
+		border: filter === f ? 'none' : `2px solid ${colors.primaryBlue}`,
+		borderRadius: '25px',
+		background: filter === f 
+			? `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`
+			: colors.white,
+		color: filter === f ? colors.white : colors.primaryBlue,
+		cursor: 'pointer',
+		fontWeight: filter === f ? '700' : '600',
+		fontSize: '0.9rem',
+		textTransform: 'uppercase',
+		letterSpacing: '0.5px',
+		transition: 'all 0.3s ease',
+		boxShadow: filter === f 
+			? '0 4px 15px rgba(0, 123, 255, 0.3)'
+			: '0 2px 4px rgba(0,0,0,0.1)'
+	});
 
-					<textarea placeholder="✨ Highlights (one per line)" value={formData.highlights} onChange={e => setFormData({ ...formData, highlights: e.target.value })} style={textAreaStyle} />
-					<textarea placeholder="📋 Requirements (one per line)" value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} style={textAreaStyle} />
-					<textarea placeholder="📝 Notes" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} style={textAreaStyle} />
+	const formStyle = {
+		background: colors.white,
+		padding: '2.5rem',
+		borderRadius: '12px',
+		marginBottom: '2rem',
+		border: `1px solid ${colors.borderGray}`,
+		boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+		position: 'relative'
+	};
 
-					<button type="submit" disabled={submitting} style={submitBtn}>
-						{submitting ? '⏳ Saving...' : (editingTour ? '✏️ Update Tour' : '✅ Create Tour')}
-					</button>
-				</form>
-			)}
+	const formHeaderStyle = {
+		position: 'absolute',
+		top: '0',
+		left: '0',
+		right: '0',
+		height: '4px',
+		background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+		borderRadius: '12px 12px 0 0'
+	};
 
-			{/* Tour Cards */}
-			{getFilteredTours().map(tour => (
-				<div key={tour._id} style={{ background: 'white', padding: '1rem', marginBottom: '1.5rem', borderRadius: '8px', border: '1px solid #ddd' }}>
-					<h3>{tour.title}</h3>
-					<p>{tour.description}</p>
-					<p>📅 {new Date(tour.date).toLocaleDateString()}</p>
-					<p>🕒 Slots:</p>
-					<ul>
-						{tour.timeSlots?.map((slot, i) => (
-							<li key={i}>{slot.startTime} – {slot.endTime}</li>
-						))}
-					</ul>
-					<p>👥 {tour.currentBookings}/{tour.maxCapacity}</p>
-					<p>📍 {tour.meetingPoint}</p>
-					<p>🎯 Type: {tour.tourType}</p>
-					<div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-						<button onClick={() => handleEdit(tour)}>✏️ Edit</button>
-						<button onClick={() => toggleStatus(tour._id, tour.isActive)}>
-							{tour.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
-						</button>
-						<button onClick={() => handleDelete(tour._id)}>🗑️ Delete</button>
+	const inputStyle = {
+		display: 'block',
+		width: '100%',
+		margin: '1rem 0',
+		padding: '1rem 1.25rem',
+		border: `2px solid #e1e5e9`,
+		borderRadius: '10px',
+		fontSize: '1rem',
+		fontFamily: 'inherit',
+		transition: 'all 0.3s ease',
+		background: '#fafbfc',
+		boxSizing: 'border-box'
+	};
+
+	const inputFocusStyle = {
+		outline: 'none',
+		borderColor: colors.primaryBlue,
+		boxShadow: `0 0 0 4px rgba(0, 123, 255, 0.15)`,
+		background: colors.white,
+		transform: 'translateY(-2px)'
+	};
+
+	const textAreaStyle = {
+		...inputStyle,
+		resize: 'vertical',
+		minHeight: '100px',
+		fontFamily: 'inherit'
+	};
+
+	const labelStyle = {
+		display: 'block',
+		fontWeight: '700',
+		color: colors.darkGray,
+		marginBottom: '0.5rem',
+		fontSize: '1rem'
+	};
+
+	const timeSlotContainerStyle = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '1rem',
+		marginBottom: '1rem',
+		padding: '1rem',
+		background: colors.lightBlue,
+		borderRadius: '8px',
+		border: `1px solid ${colors.primaryBlue}20`
+	};
+
+	const submitButtonStyle = {
+		padding: '1.25rem 2rem',
+		background: submitting 
+			? 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)'
+			: `linear-gradient(135deg, ${colors.successGreen} 0%, #1e7e34 100%)`,
+		color: colors.white,
+		border: 'none',
+		borderRadius: '12px',
+		cursor: submitting ? 'not-allowed' : 'pointer',
+		marginTop: '1.5rem',
+		fontSize: '1.1rem',
+		fontWeight: '700',
+		width: '100%',
+		boxShadow: submitting 
+			? 'none'
+			: '0 4px 15px rgba(40, 167, 69, 0.3)',
+		transition: 'all 0.3s ease',
+		opacity: submitting ? 0.7 : 1
+	};
+
+	const tourCardStyle = {
+		background: colors.white,
+		padding: '2rem',
+		marginBottom: '2rem',
+		borderRadius: '12px',
+		border: `1px solid ${colors.borderGray}`,
+		boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+		transition: 'all 0.3s ease'
+	};
+
+	const tourTitleStyle = {
+		fontSize: '1.4rem',
+		fontWeight: '700',
+		color: colors.darkGray,
+		marginBottom: '1rem'
+	};
+
+	const tourDetailStyle = {
+		margin: '0.5rem 0',
+		color: '#666',
+		fontSize: '0.95rem',
+		lineHeight: '1.5'
+	};
+
+	const actionButtonsStyle = {
+		display: 'flex',
+		gap: '0.75rem',
+		marginTop: '1.5rem',
+		flexWrap: 'wrap'
+	};
+
+	const getActionButtonStyle = (type) => {
+		const styles = {
+			edit: {
+				background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
+				boxShadow: '0 2px 4px rgba(0, 123, 255, 0.3)'
+			},
+			toggle: {
+				background: `linear-gradient(135deg, ${colors.warningOrange} 0%, #e8590c 100%)`,
+				boxShadow: '0 2px 4px rgba(253, 126, 20, 0.3)'
+			},
+			delete: {
+				background: `linear-gradient(135deg, ${colors.dangerRed} 0%, #c82333 100%)`,
+				boxShadow: '0 2px 4px rgba(220, 53, 69, 0.3)'
+			}
+		};
+
+		return {
+			padding: '0.75rem 1.25rem',
+			color: colors.white,
+			border: 'none',
+			borderRadius: '8px',
+			cursor: 'pointer',
+			fontSize: '0.9rem',
+			fontWeight: '600',
+			transition: 'all 0.3s ease',
+			display: 'flex',
+			alignItems: 'center',
+			gap: '0.5rem',
+			...styles[type]
+		};
+	};
+
+	const loadingStyle = {
+		padding: '4rem 2rem',
+		textAlign: 'center',
+		fontSize: '1.2rem',
+		color: '#666',
+		background: colors.white,
+		borderRadius: '12px',
+		boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+	};
+
+	if (loading) {
+		return (
+			<div style={wrapperStyle}>
+				<div style={containerStyle}>
+					<div style={loadingStyle}>
+						⏳ Loading tours...
 					</div>
 				</div>
-			))}
+			</div>
+		);
+	}
+
+	return (
+		<div className="mt-wrapper" style={wrapperStyle}>
+			<div className="mt-container" style={containerStyle}>
+				<h2 className="mt-header" style={headerStyle}>Manage School Tours</h2>
+
+				{/* Create Button */}
+				<button
+					className="mt-create-btn"
+					onClick={() => showForm ? resetForm() : setShowForm(true)}
+					style={createButtonStyle}
+					onMouseEnter={(e) => {
+						e.target.style.transform = 'translateY(-3px)';
+						e.target.style.boxShadow = showForm 
+							? '0 8px 25px rgba(220, 53, 69, 0.4)'
+							: '0 8px 25px rgba(0, 123, 255, 0.4)';
+					}}
+					onMouseLeave={(e) => {
+						e.target.style.transform = 'translateY(0)';
+						e.target.style.boxShadow = showForm 
+							? '0 4px 15px rgba(220, 53, 69, 0.3)'
+							: '0 4px 15px rgba(0, 123, 255, 0.3)';
+					}}
+				>
+					{showForm ? '✖ Cancel' : '➕ Create New Tour'}
+				</button>
+
+				{/* Filter Buttons */}
+				<div className="mt-filters" style={filterContainerStyle}>
+					{['all', 'active', 'inactive', 'upcoming'].map((f) => (
+						<button
+							key={f}
+							className={`mt-filter-btn ${filter === f ? 'mt-filter-active' : ''}`}
+							onClick={() => setFilter(f)}
+							style={getFilterButtonStyle(f)}
+							onMouseEnter={(e) => {
+								if (filter !== f) {
+									e.target.style.background = colors.lightBlue;
+									e.target.style.transform = 'translateY(-2px)';
+								}
+							}}
+							onMouseLeave={(e) => {
+								if (filter !== f) {
+									e.target.style.background = colors.white;
+									e.target.style.transform = 'translateY(0)';
+								}
+							}}
+						>
+							{f.toUpperCase()} ({getFilteredTours().length})
+						</button>
+					))}
+				</div>
+
+				{/* Tour Form */}
+				{showForm && (
+					<form className="mt-form" onSubmit={handleSubmit} style={formStyle}>
+						<div style={formHeaderStyle}></div>
+						
+						<input
+							className="mt-input"
+							type="text"
+							placeholder="📛 Tour Title"
+							value={formData.title}
+							required
+							onChange={e => setFormData({ ...formData, title: e.target.value })}
+							style={inputStyle}
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<textarea
+							className="mt-textarea"
+							placeholder="📝 Tour Description"
+							value={formData.description}
+							required
+							onChange={e => setFormData({ ...formData, description: e.target.value })}
+							style={textAreaStyle}
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<input 
+							className="mt-input"
+							type="date" 
+							value={formData.date} 
+							required 
+							onChange={e => setFormData({ ...formData, date: e.target.value })} 
+							style={inputStyle} 
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<input 
+							className="mt-input"
+							type="number" 
+							placeholder="👥 Maximum Capacity" 
+							value={formData.maxCapacity} 
+							required 
+							onChange={e => setFormData({ ...formData, maxCapacity: e.target.value })} 
+							style={inputStyle} 
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<select 
+							className="mt-select"
+							value={formData.duration} 
+							onChange={e => setFormData({ ...formData, duration: e.target.value })} 
+							style={inputStyle}
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						>
+							<option value="60">⏱️ 60 minutes</option>
+							<option value="90">⏱️ 90 minutes</option>
+							<option value="120">⏱️ 120 minutes</option>
+						</select>
+
+						{/* Time Slots */}
+						<label style={labelStyle}>🕒 Time Slots</label>
+						{formData.timeSlots.map((slot, i) => (
+							<div key={i} className="mt-time-slot" style={timeSlotContainerStyle}>
+								<input
+									className="mt-time-input"
+									type="time"
+									value={slot.startTime}
+									required
+									onChange={(e) => {
+										const updated = [...formData.timeSlots];
+										updated[i].startTime = e.target.value;
+										setFormData({ ...formData, timeSlots: updated });
+									}}
+									style={{ ...inputStyle, width: '150px', margin: '0' }}
+								/>
+								<span style={{ fontWeight: '600', color: colors.darkGray }}>
+									➡ Ends at {slot.startTime ? calculateEndTime(slot.startTime, formData.duration) : '--:--'}
+								</span>
+								{formData.timeSlots.length > 1 && (
+									<button 
+										type="button" 
+										onClick={() => {
+											setFormData({ ...formData, timeSlots: formData.timeSlots.filter((_, idx) => idx !== i) });
+										}}
+										style={getActionButtonStyle('delete')}
+									>
+										❌ Remove
+									</button>
+								)}
+							</div>
+						))}
+						{formData.timeSlots.length < 3 && (
+							<button 
+								type="button" 
+								onClick={() =>
+									setFormData({ ...formData, timeSlots: [...formData.timeSlots, { startTime: '' }] })
+								}
+								style={{...getActionButtonStyle('edit'), margin: '1rem 0'}}
+							>
+								➕ Add Time Slot
+							</button>
+						)}
+
+						<textarea 
+							className="mt-textarea"
+							placeholder="Tour Highlights (one per line)" 
+							value={formData.highlights} 
+							onChange={e => setFormData({ ...formData, highlights: e.target.value })} 
+							style={textAreaStyle} 
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<textarea 
+							className="mt-textarea"
+							placeholder="Tour Requirements (one per line)" 
+							value={formData.requirements} 
+							onChange={e => setFormData({ ...formData, requirements: e.target.value })} 
+							style={textAreaStyle} 
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+						
+						<textarea 
+							className="mt-textarea"
+							placeholder="📝 Additional Notes" 
+							value={formData.notes} 
+							onChange={e => setFormData({ ...formData, notes: e.target.value })} 
+							style={textAreaStyle} 
+							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+							onBlur={(e) => {
+								e.target.style.borderColor = '#e1e5e9';
+								e.target.style.boxShadow = 'none';
+								e.target.style.background = '#fafbfc';
+								e.target.style.transform = 'translateY(0)';
+							}}
+						/>
+
+						<button 
+							type="submit" 
+							disabled={submitting} 
+							style={submitButtonStyle}
+							onMouseEnter={(e) => {
+								if (!submitting) {
+									e.target.style.transform = 'translateY(-3px)';
+									e.target.style.boxShadow = '0 8px 25px rgba(40, 167, 69, 0.4)';
+								}
+							}}
+							onMouseLeave={(e) => {
+								if (!submitting) {
+									e.target.style.transform = 'translateY(0)';
+									e.target.style.boxShadow = '0 4px 15px rgba(40, 167, 69, 0.3)';
+								}
+							}}
+						>
+							{submitting ? '⏳ Saving...' : (editingTour ? '✏️ Update Tour' : '✅ Create Tour')}
+						</button>
+					</form>
+				)}
+
+				{/* Tour Cards */}
+				<div className="mt-tours-container">
+					{getFilteredTours().map(tour => (
+						<div 
+							key={tour._id} 
+							className="mt-tour-card" 
+							style={tourCardStyle}
+							onMouseEnter={(e) => {
+								e.target.style.transform = 'translateY(-4px)';
+								e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.target.style.transform = 'translateY(0)';
+								e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+							}}
+						>
+							<h3 className="mt-tour-title" style={tourTitleStyle}>{tour.title}</h3>
+							<p className="mt-tour-description" style={tourDetailStyle}>{tour.description}</p>
+							<p className="mt-tour-date" style={tourDetailStyle}>📅 <strong>Date:</strong> {new Date(tour.date).toLocaleDateString()}</p>
+							<div className="mt-tour-slots" style={tourDetailStyle}>
+								<p><strong>🕒 Time Slots:</strong></p>
+								<ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+									{tour.timeSlots?.map((slot, i) => (
+										<li key={i} style={{ margin: '0.25rem 0' }}>{slot.startTime} – {slot.endTime}</li>
+									))}
+								</ul>
+							</div>
+							<p className="mt-tour-capacity" style={tourDetailStyle}>
+								👥 <strong>Capacity:</strong> {tour.currentBookings || 0}/{tour.maxCapacity} booked
+							</p>
+							<p className="mt-tour-meeting" style={tourDetailStyle}>📍 <strong>Meeting Point:</strong> {tour.meetingPoint}</p>
+							<p className="mt-tour-type" style={tourDetailStyle}>🎯 <strong>Type:</strong> {tour.tourType}</p>
+							<p className="mt-tour-status" style={{
+								...tourDetailStyle,
+								color: tour.isActive ? colors.successGreen : colors.dangerRed,
+								fontWeight: '600'
+							}}>
+								{tour.isActive ? '✅ Active' : '❌ Inactive'}
+							</p>
+							
+							<div className="mt-tour-actions" style={actionButtonsStyle}>
+								<button 
+									className="mt-edit-btn"
+									onClick={() => handleEdit(tour)}
+									style={getActionButtonStyle('edit')}
+									onMouseEnter={(e) => {
+										e.target.style.transform = 'translateY(-2px)';
+										e.target.style.boxShadow = '0 4px 8px rgba(0, 123, 255, 0.4)';
+									}}
+									onMouseLeave={(e) => {
+										e.target.style.transform = 'translateY(0)';
+										e.target.style.boxShadow = '0 2px 4px rgba(0, 123, 255, 0.3)';
+									}}
+								>
+									✏️ Edit
+								</button>
+								<button 
+									className="mt-toggle-btn"
+									onClick={() => toggleStatus(tour._id, tour.isActive)}
+									style={getActionButtonStyle('toggle')}
+									onMouseEnter={(e) => {
+										e.target.style.transform = 'translateY(-2px)';
+										e.target.style.boxShadow = '0 4px 8px rgba(253, 126, 20, 0.4)';
+									}}
+									onMouseLeave={(e) => {
+										e.target.style.transform = 'translateY(0)';
+										e.target.style.boxShadow = '0 2px 4px rgba(253, 126, 20, 0.3)';
+									}}
+								>
+									{tour.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+								</button>
+								<button 
+									className="mt-delete-btn"
+									onClick={() => handleDelete(tour._id)}
+									style={getActionButtonStyle('delete')}
+									onMouseEnter={(e) => {
+										e.target.style.transform = 'translateY(-2px)';
+										e.target.style.boxShadow = '0 4px 8px rgba(220, 53, 69, 0.4)';
+									}}
+									onMouseLeave={(e) => {
+										e.target.style.transform = 'translateY(0)';
+										e.target.style.boxShadow = '0 2px 4px rgba(220, 53, 69, 0.3)';
+									}}
+								>
+									🗑️ Delete
+								</button>
+							</div>
+						</div>
+					))}
+				</div>
+
+				{getFilteredTours().length === 0 && (
+					<div style={{
+						...loadingStyle,
+						color: colors.primaryBlue
+					}}>
+						📅 No tours found for the selected filter.
+					</div>
+				)}
+			</div>
 		</div>
 	);
-};
-
-// Inlined styles
-const inputStyle = {
-	display: 'block',
-	width: '100%',
-	margin: '0.5rem 0',
-	padding: '0.6rem',
-	border: '1px solid #ccc',
-	borderRadius: '4px'
-};
-
-const textAreaStyle = {
-	...inputStyle,
-	resize: 'vertical',
-	minHeight: '60px'
-};
-
-const submitBtn = {
-	padding: '0.75rem 1.5rem',
-	backgroundColor: '#28a745',
-	color: 'white',
-	border: 'none',
-	borderRadius: '6px',
-	cursor: 'pointer',
-	marginTop: '1rem'
 };
 
 export default ManageTours;

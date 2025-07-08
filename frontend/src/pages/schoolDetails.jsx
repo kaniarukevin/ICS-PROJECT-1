@@ -35,6 +35,17 @@ function SchoolDetails() {
   const token = localStorage.getItem('token');
   const isLoggedIn = !!token;
 
+  // Placeholder images for schools
+  const getPlaceholderImage = (schoolType) => {
+    const images = {
+      'University': 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=400&fit=crop',
+      'High School': 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=400&fit=crop',
+      'TVET': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop',
+      'default': 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=400&fit=crop'
+    };
+    return images[schoolType] || images.default;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,7 +62,13 @@ function SchoolDetails() {
         if (Array.isArray(toursData)) {
           const enriched = toursData.map(tour => ({
             ...tour,
-            availableSpots: tour.maxCapacity - (tour.currentBookings || 0)
+            availableSpots: tour.maxCapacity - (tour.currentBookings || 0),
+            // Add sample requirements if not present
+            requirements: tour.requirements || [
+              'Valid ID required',
+              'Comfortable walking shoes recommended',
+              'Photography may be restricted in some areas'
+            ]
           }));
           setTours(enriched);
 
@@ -169,7 +186,6 @@ function SchoolDetails() {
 
       const data = await res.json();
       if (res.ok) {
-        // Refresh bookings and tours
         const res2 = await fetch(`http://localhost:5000/api/parents/bookings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -221,44 +237,43 @@ function SchoolDetails() {
     }
   };
 
- const handleAddToCompare = () => {
-  if (!isLoggedIn) return handleLoginPrompt();
-  
-  const existing = JSON.parse(localStorage.getItem('compareSchools')) || [];
-  
-  if (existing.includes(id)) {
+  const handleAddToCompare = () => {
+    if (!isLoggedIn) return handleLoginPrompt();
+    
+    const existing = JSON.parse(localStorage.getItem('compareSchools')) || [];
+    
+    if (existing.includes(id)) {
+      showModal(
+        'Already Added', 
+        'This school is already in your compare list.', 
+        'info',
+        () => navigate('/compare')
+      );
+      return;
+    }
+    
+    const updated = Array.from(new Set([...existing, id]));
+    
+    if (updated.length > 4) {
+      showModal(
+        'Comparison Limit', 
+        'You can compare up to 4 schools at a time. Please remove some schools from your comparison list first.',
+        'warning'
+      );
+      return;
+    }
+    
+    localStorage.setItem('compareSchools', JSON.stringify(updated));
+    
     showModal(
-      'Already Added', 
-      'This school is already in your compare list.', 
-      'info',
-      () => navigate('/compare')  // Added navigation option
+      'Added to Compare', 
+      'School has been added to your compare list! Would you like to view your comparison now?', 
+      'confirm',
+      () => navigate('/compare'),
+      'View Comparison',
+      'Continue Browsing'
     );
-    return;
-  }
-  
-  const updated = Array.from(new Set([...existing, id]));
-  
-  // Limit to 4 schools for comparison (adjust as needed)
-  if (updated.length > 4) {
-    showModal(
-      'Comparison Limit', 
-      'You can compare up to 4 schools at a time. Please remove some schools from your comparison list first.',
-      'warning'
-    );
-    return;
-  }
-  
-  localStorage.setItem('compareSchools', JSON.stringify(updated));
-  
-  showModal(
-    'Added to Compare', 
-    'School has been added to your compare list! Would you like to view your comparison now?', 
-    'confirm',
-    () => navigate('/compare'),  // Confirm action navigates to compare
-    'View Comparison',
-    'Continue Browsing'
-  );
-};
+  };
 
   const handleRatingSubmit = async () => {
     if (!isLoggedIn) return handleLoginPrompt();
@@ -313,202 +328,319 @@ function SchoolDetails() {
   const isTourBooked = (tourId) => myBookings.some(b => b.tourId === tourId);
   const getBookingForTour = (tourId) => myBookings.find(b => b.tourId === tourId);
 
-  if (loading) return <div className="loading">Loading school details...</div>;
-  if (!school) return <div className="loading">School not found.</div>;
+  if (loading) return <div className="sd-loading">🔍 Loading school details...</div>;
+  if (!school) return <div className="sd-loading">❌ School not found.</div>;
 
   return (
-    <div className="school-details-container">
-      <h1>{school.name}</h1>
-      <p><strong>Type:</strong> {school.schoolType}</p>
-      <p>{school.description}</p>
+    <div className="sd-wrapper">
+      <div className="sd-container">
+        {/* Hero Section with School Image */}
+        <div className="sd-hero">
+          <div className="sd-hero-image">
+            <img 
+              src={getPlaceholderImage(school.schoolType)} 
+              alt={school.name}
+              className="sd-school-image"
+            />
+            <div className="sd-hero-overlay">
+              <div className="sd-hero-content">
+                <h1 className="sd-school-title">{school.name}</h1>
+                <div className="sd-school-meta">
+                  <span className="sd-school-type">🏫 {school.schoolType}</span>
+                  <span className="sd-school-location">📍 {school.location?.city}, {school.location?.state}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <h3>Location</h3>
-      <div className="location-info">
-        <p>{school.location?.city}, {school.location?.state}</p>
-      </div>
+        {/* Main Content */}
+        <div className="sd-content">
+          {/* School Overview */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">📋 School Overview</h2>
+            <div className="sd-overview-card">
+              <p className="sd-description">{school.description}</p>
+            </div>
+          </section>
 
-      <h3>Ratings</h3>
-      <ul className="ratings-list">
-        <li>Overall: {school.ratings?.overall?.toFixed(1) || 'N/A'}</li>
-        <li>Academic: {school.ratings?.academic?.toFixed(1) || 'N/A'}</li>
-        <li>Facilities: {school.ratings?.facilities?.toFixed(1) || 'N/A'}</li>
-        <li>Teachers: {school.ratings?.teachers?.toFixed(1) || 'N/A'}</li>
-        <li>Environment: {school.ratings?.environment?.toFixed(1) || 'N/A'}</li>
-      </ul>
+          {/* Ratings Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">⭐ Ratings & Reviews</h2>
+            <div className="sd-ratings-grid">
+              {[
+                { key: 'overall', label: '🌟 Overall', icon: '🌟' },
+                { key: 'academic', label: '📚 Academic', icon: '📚' },
+                { key: 'facilities', label: '🏢 Facilities', icon: '🏢' },
+                { key: 'teachers', label: '👨‍🏫 Teachers', icon: '👨‍🏫' },
+                { key: 'environment', label: '🌱 Environment', icon: '🌱' }
+              ].map(({ key, label, icon }) => (
+                <div key={key} className="sd-rating-card">
+                  <div className="sd-rating-icon">{icon}</div>
+                  <div className="sd-rating-content">
+                    <h4 className="sd-rating-label">{label}</h4>
+                    <div className="sd-rating-value">
+                      {school.ratings?.[key]?.toFixed(1) || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-      <h3>Facilities</h3>
-      <ul className="facilities">
-        {school.facilities?.map((f, i) => <li key={i}>{f.name}</li>)}
-      </ul>
+          {/* Facilities Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">🏢 Facilities</h2>
+            <div className="sd-facilities-grid">
+              {school.facilities?.map((facility, index) => (
+                <div key={index} className="sd-facility-item">
+                  <span className="sd-facility-icon">✅</span>
+                  <span className="sd-facility-name">{facility.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-      <h3>Fees</h3>
-      <div className="fees-info">
-        <p>KES {school.fees?.tuition?.minAmount?.toLocaleString()} - {school.fees?.tuition?.maxAmount?.toLocaleString()} per term</p>
-      </div>
-
-      <h3>Contact</h3>
-      <div className="contact-info">
-        <p><strong>Phone:</strong> {school.contact?.phone}</p>
-        <p><strong>Email:</strong> {school.contact?.email}</p>
-      </div>
-
-      <h3>Available Tours</h3>
-      {tours.length === 0 ? (
-        <p>No upcoming tours available.</p>
-      ) : (
-        <ul className="tours-list">
-          {tours.map(tour => {
-            const booking = getBookingForTour(tour._id);
-            const isBooked = !!booking;
-            const spotsClass = tour.availableSpots <= 5 ? 'low-spots' : tour.availableSpots === 0 ? 'no-spots' : '';
-            
-            return (
-              <li key={tour._id}>
-                <div className="tour-header">
-                  <h4 className="tour-title">{tour.title}</h4>
-                  <span className={`tour-spots ${spotsClass}`}>
-                    {tour.availableSpots} spots left
+          {/* Fees Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">💰 Fees Information</h2>
+            <div className="sd-fees-card">
+              <div className="sd-fees-content">
+                <div className="sd-fees-range">
+                  <span className="sd-fees-label">Tuition per term:</span>
+                  <span className="sd-fees-amount">
+                    KES {school.fees?.tuition?.minAmount?.toLocaleString()} - {school.fees?.tuition?.maxAmount?.toLocaleString()}
                   </span>
                 </div>
-                
-                <div className="tour-details">
-                  <div className="tour-detail-item">
-                    <label>Date:</label>
-                    <span>{new Date(tour.date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="tour-detail-item">
-                    <label>Type:</label>
-                    <span>{tour.tourType}</span>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Time Slot:</label>
-                  <select
-                    value={selectedSlots[tour._id] || ''}
-                    onChange={(e) => setSelectedSlots({ ...selectedSlots, [tour._id]: e.target.value })}
-                    disabled={isBooked}
-                  >
-                    <option value="" disabled>Select a time slot</option>
-                    {tour.timeSlots?.map(slot => (
-                      <option key={slot.startTime} value={slot.startTime}>
-                        {slot.startTime} – {slot.endTime}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="booking-actions">
-                  {isBooked ? (
-                    <button 
-                      className="btn btn-danger"
-                      onClick={() => handleCancelBooking(booking._id, tour.title)}
-                    >
-                      Cancel Booking
-                    </button>
-                  ) : isLoggedIn ? (
-                    <>
-                      <div className="guests-selector">
-                        <label>Guests:</label>
-                        <select
-                          value={guestCounts[tour._id] || 1}
-                          onChange={(e) => setGuestCounts({ ...guestCounts, [tour._id]: parseInt(e.target.value) })}
-                        >
-                          {Array.from({ length: Math.max(1, tour.availableSpots) }, (_, i) => i + 1).map(n => (
-                            <option key={n} value={n}>{n}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => handleBookTour(tour._id)}
-                        disabled={tour.availableSpots === 0}
-                      >
-                        {tour.availableSpots === 0 ? 'Fully Booked' : 'Book Tour'}
-                      </button>
-                    </>
-                  ) : (
-                    <button className="btn btn-secondary" onClick={handleLoginPrompt}>
-                      Login to Book
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-     <h3>Compare School</h3>
-      <div className="compare-section">
-    <p>Add this school to your comparison list to compare with other schools.</p>
-       <div className="compare-actions">
-    <button 
-      className="btn btn-warning"
-      onClick={handleAddToCompare}
-    >
-      {isLoggedIn ? 'Add to Compare' : 'Login to Compare'}
-    </button>
-    {isLoggedIn && (
-      <button 
-        className="btn btn-outline"
-        onClick={() => navigate('/compare')}
-      >
-        View My Comparison
-      </button>
-    )}
-  </div>
-</div>
-
-      <h3>Rate This School</h3>
-      {isLoggedIn ? (
-        <div className="rate-section">
-          <p>Share your experience with this school to help other parents make informed decisions.</p>
-          
-          <div className="rating-grid">
-            {['overall', 'academic', 'facilities', 'teachers', 'environment'].map(field => (
-              <div key={field} className="rating-item">
-                <label>{field.charAt(0).toUpperCase() + field.slice(1)} Rating:</label>
-                <select
-                  value={rating[field]}
-                  onChange={(e) => setRating({ ...rating, [field]: parseInt(e.target.value) })}
-                >
-                  <option value={0}>Select Rating</option>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <option key={n} value={n}>
-                      {n} {n === 1 ? 'Star' : 'Stars'}
-                    </option>
-                  ))}
-                </select>
               </div>
-            ))}
-          </div>
+            </div>
+          </section>
 
-          <div className="form-group">
-            <label>Your Comments (Optional):</label>
-            <textarea
-              placeholder="Share your thoughts about this school..."
-              value={rating.comment}
-              onChange={(e) => setRating({ ...rating, comment: e.target.value })}
-              rows="4"
-            />
-          </div>
+          {/* Contact Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">📞 Contact Information</h2>
+            <div className="sd-contact-grid">
+              <div className="sd-contact-item">
+                <span className="sd-contact-icon">📞</span>
+                <div className="sd-contact-content">
+                  <span className="sd-contact-label">Phone</span>
+                  <span className="sd-contact-value">{school.contact?.phone}</span>
+                </div>
+              </div>
+              <div className="sd-contact-item">
+                <span className="sd-contact-icon">📧</span>
+                <div className="sd-contact-content">
+                  <span className="sd-contact-label">Email</span>
+                  <span className="sd-contact-value">{school.contact?.email}</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <button 
-            className="btn btn-success"
-            onClick={handleRatingSubmit}
-          >
-            Submit Rating
-          </button>
+          {/* Tours Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">🎯 Available Tours</h2>
+            {tours.length === 0 ? (
+              <div className="sd-no-tours">
+                <div className="sd-no-tours-content">
+                  <span className="sd-no-tours-icon">📅</span>
+                  <h3>No upcoming tours available</h3>
+                  <p>Check back later for new tour schedules.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="sd-tours-grid">
+                {tours.map(tour => {
+                  const booking = getBookingForTour(tour._id);
+                  const isBooked = !!booking;
+                  const spotsClass = tour.availableSpots <= 5 ? 'sd-low-spots' : tour.availableSpots === 0 ? 'sd-no-spots' : '';
+                  
+                  return (
+                    <div key={tour._id} className="sd-tour-card">
+                      <div className="sd-tour-header">
+                        <h4 className="sd-tour-title">{tour.title}</h4>
+                        <span className={`sd-tour-spots ${spotsClass}`}>
+                          {tour.availableSpots} spots left
+                        </span>
+                      </div>
+                      
+                      <div className="sd-tour-details">
+                        <div className="sd-tour-detail-item">
+                          <span className="sd-tour-detail-icon">📅</span>
+                          <span className="sd-tour-detail-label">Date:</span>
+                          <span className="sd-tour-detail-value">{new Date(tour.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="sd-tour-detail-item">
+                          <span className="sd-tour-detail-icon">🎯</span>
+                          <span className="sd-tour-detail-label">Type:</span>
+                          <span className="sd-tour-detail-value">{tour.tourType}</span>
+                        </div>
+                      </div>
+
+                      {/* Tour Requirements */}
+                      <div className="sd-tour-requirements">
+                        <h5 className="sd-requirements-title">📋 Requirements:</h5>
+                        <ul className="sd-requirements-list">
+                          {tour.requirements?.map((req, index) => (
+                            <li key={index} className="sd-requirement-item">
+                              <span className="sd-requirement-bullet">•</span>
+                              {req}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="sd-tour-form">
+                        <div className="sd-form-group">
+                          <label className="sd-form-label">🕐 Time Slot:</label>
+                          <select
+                            className="sd-form-select"
+                            value={selectedSlots[tour._id] || ''}
+                            onChange={(e) => setSelectedSlots({ ...selectedSlots, [tour._id]: e.target.value })}
+                            disabled={isBooked}
+                          >
+                            <option value="" disabled>Select a time slot</option>
+                            {tour.timeSlots?.map(slot => (
+                              <option key={slot.startTime} value={slot.startTime}>
+                                {slot.startTime} – {slot.endTime}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="sd-booking-actions">
+                          {isBooked ? (
+                            <button 
+                              className="sd-btn sd-btn-danger"
+                              onClick={() => handleCancelBooking(booking._id, tour.title)}
+                            >
+                              🗑️ Cancel Booking
+                            </button>
+                          ) : isLoggedIn ? (
+                            <div className="sd-booking-controls">
+                              <div className="sd-guests-selector">
+                                <label className="sd-form-label">👥 Guests:</label>
+                                <select
+                                  className="sd-form-select sd-guests-select"
+                                  value={guestCounts[tour._id] || 1}
+                                  onChange={(e) => setGuestCounts({ ...guestCounts, [tour._id]: parseInt(e.target.value) })}
+                                >
+                                  {Array.from({ length: Math.max(1, tour.availableSpots) }, (_, i) => i + 1).map(n => (
+                                    <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button 
+                                className="sd-btn sd-btn-primary"
+                                onClick={() => handleBookTour(tour._id)}
+                                disabled={tour.availableSpots === 0}
+                              >
+                                {tour.availableSpots === 0 ? '❌ Fully Booked' : '🎫 Book Tour'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button className="sd-btn sd-btn-secondary" onClick={handleLoginPrompt}>
+                              🔐 Login to Book
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Compare Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">🔄 Compare School</h2>
+            <div className="sd-compare-card">
+              <p className="sd-compare-description">Add this school to your comparison list to compare with other schools.</p>
+              <div className="sd-compare-actions">
+                <button 
+                  className="sd-btn sd-btn-warning"
+                  onClick={handleAddToCompare}
+                >
+                  {isLoggedIn ? '➕ Add to Compare' : '🔐 Login to Compare'}
+                </button>
+                {isLoggedIn && (
+                  <button 
+                    className="sd-btn sd-btn-outline"
+                    onClick={() => navigate('/compare')}
+                  >
+                    👁️ View My Comparison
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Rating Section */}
+          <section className="sd-section">
+            <h2 className="sd-section-title">⭐ Rate This School</h2>
+            {isLoggedIn ? (
+              <div className="sd-rate-card">
+                <p className="sd-rate-description">Share your experience with this school to help other parents make informed decisions.</p>
+                
+                <div className="sd-rating-grid-form">
+                  {[
+                    { key: 'overall', label: 'Overall', icon: '🌟' },
+                    { key: 'academic', label: 'Academic', icon: '📚' },
+                    { key: 'facilities', label: 'Facilities', icon: '🏢' },
+                    { key: 'teachers', label: 'Teachers', icon: '👨‍🏫' },
+                    { key: 'environment', label: 'Environment', icon: '🌱' }
+                  ].map(({ key, label, icon }) => (
+                    <div key={key} className="sd-rating-form-item">
+                      <label className="sd-rating-form-label">
+                        <span className="sd-rating-form-icon">{icon}</span>
+                        {label}:
+                      </label>
+                      <select
+                        className="sd-form-select"
+                        value={rating[key]}
+                        onChange={(e) => setRating({ ...rating, [key]: parseInt(e.target.value) })}
+                      >
+                        <option value={0}>Select Rating</option>
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? 'Star' : 'Stars'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="sd-form-group">
+                  <label className="sd-form-label">💬 Your Comments (Optional):</label>
+                  <textarea
+                    className="sd-form-textarea"
+                    placeholder="Share your thoughts about this school..."
+                    value={rating.comment}
+                    onChange={(e) => setRating({ ...rating, comment: e.target.value })}
+                    rows="4"
+                  />
+                </div>
+
+                <button 
+                  className="sd-btn sd-btn-success"
+                  onClick={handleRatingSubmit}
+                >
+                  🌟 Submit Rating
+                </button>
+              </div>
+            ) : (
+              <div className="sd-rate-card">
+                <p className="sd-rate-description">Please log in to rate this school and share your experience.</p>
+                <button className="sd-btn sd-btn-secondary" onClick={handleLoginPrompt}>
+                  🔐 Login to Rate
+                </button>
+              </div>
+            )}
+          </section>
         </div>
-      ) : (
-        <div className="rate-section">
-          <p>Please log in to rate this school and share your experience.</p>
-          <button className="btn btn-secondary" onClick={handleLoginPrompt}>
-            Login to Rate
-          </button>
-        </div>
-      )}
+      </div>
 
       <Modal
         isOpen={modalConfig.isOpen}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './results.css';
+import './results.css'; // updated to use .css extension if it exists
 
 function StarRating({ value }) {
   const stars = [];
@@ -29,7 +29,7 @@ function StarFilter({ label, value, setValue }) {
             key={star}
             className={`star ${value >= star ? 'full' : 'empty'}`}
             onClick={() => handleClick(star)}
-            style={{ cursor: 'pointer', fontSize: '1.5rem', transition: 'transform 0.2s ease' }}
+            style={{ cursor: 'pointer', fontSize: '1.25rem', transition: 'transform 0.2s ease' }}
           >
             ★
           </span>
@@ -65,6 +65,7 @@ function Results() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const fetchSchools = async () => {
     setLoading(true);
@@ -115,6 +116,25 @@ function Results() {
     fetchLocations();
   }, []);
 
+  const updateSortInParams = (newSortBy, newSortOrder) => {
+    const newParams = {
+      name,
+      schoolType,
+      location,
+      minFee,
+      maxFee,
+      overallRating,
+      academicRating,
+      facilitiesRating,
+      teachersRating,
+      environmentRating,
+      sortBy: newSortBy,
+      sortOrder: newSortOrder,
+    };
+    setSearchParams(newParams);
+    setCurrentPage(1);
+  };
+
   const handleApplyFilters = () => {
     const newParams = {
       name,
@@ -160,104 +180,188 @@ function Results() {
   );
 
   return (
-    <div className="results-wrapper">
-      <h1 className="results-title">Search & Filter Schools</h1>
+    <div className="sr-wrapper">
+      <header className="sr-header">
+        <div className="sr-container">
+          <div className="sr-search-bar">
+            <div className="sr-search-row">
+              <input 
+                type="text" 
+                placeholder="Search by school name..." 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                onKeyDown={handleKeyDown}
+                className="sr-input"
+              />
+              <button onClick={handleApplyFilters} className="sr-btn sr-btn-primary">Search</button>
+            </div>
 
-      <div className="sort-controls">
-        <label>Sort By:</label>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="createdAt">Newest</option>
-          <option value="ratings.overall">Overall Rating</option>
-          <option value="fees.tuition.minAmount">Lowest Fee</option>
-          <option value="name">A-Z</option>
-        </select>
+            <div className="sr-sort-controls">
+              <div className="sr-sort-group">
+                <label>Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    const newSort = e.target.value;
+                    setSortBy(newSort);
+                    updateSortInParams(newSort, sortOrder);
+                  }}
+                  className="sr-select"
+                >
+                  <option value="createdAt">Newest</option>
+                  <option value="ratings.overall">Overall Rating</option>
+                  <option value="fees.tuition.minAmount">Lowest Fee</option>
+                  <option value="name">A-Z</option>
+                </select>
 
-        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-          <option value="desc">Descending</option>
-          <option value="asc">Ascending</option>
-        </select>
-      </div>
-
-      <div className="filter-grid">
-        <input type="text" placeholder="Search by name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={handleKeyDown} />
-        <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)}>
-          <option value="">All Types</option>
-          <option value="High School">High School</option>
-          <option value="TVET">TVET</option>
-          <option value="University">University</option>
-        </select>
-
-        <input
-          type="text"
-          list="location-options"
-          placeholder="Location (Town or County)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <datalist id="location-options">
-          {filteredSuggestions.map((loc, i) => <option key={i} value={loc} />)}
-        </datalist>
-
-        <input
-          type="number"
-          placeholder="Min Fee"
-          value={minFee}
-          min="0"
-          onChange={(e) => setMinFee(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <input
-          type="number"
-          placeholder="Max Fee"
-          value={maxFee}
-          min="0"
-          onChange={(e) => setMaxFee(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-
-        <div className="rating-filters">
-          <StarFilter label="⭐ Overall Rating" value={overallRating} setValue={setOverallRating} />
-          <StarFilter label="📘 Academic Rating" value={academicRating} setValue={setAcademicRating} />
-          <StarFilter label="🏫 Facilities Rating" value={facilitiesRating} setValue={setFacilitiesRating} />
-          <StarFilter label="👩‍🏫 Teachers Rating" value={teachersRating} setValue={setTeachersRating} />
-          <StarFilter label="🌳 Environment Rating" value={environmentRating} setValue={setEnvironmentRating} />
-        </div>
-
-        <div className="filter-buttons">
-          <button onClick={handleApplyFilters}>Apply</button>
-          <button onClick={handleClearFilters}>Clear</button>
-        </div>
-      </div>
-
-      {loading ? (
-        <p>Loading schools...</p>
-      ) : error ? (
-        <p className="error-text">{error}</p>
-      ) : schools.length === 0 ? (
-        <p>No schools found.</p>
-      ) : (
-        <>
-          <div className="results-grid">
-            {schools.map((school) => (
-              <div key={school._id} className="school-card">
-                <h2>{school.name}</h2>
-                <p>{school.location?.city || 'Unknown City'}, {school.location?.state || 'Unknown State'}</p>
-                <p>{school.schoolType || 'Type not specified'}</p>
-                <p>📍 {school.location?.address || 'Address not available'}</p>
-                <StarRating value={school.ratings?.overall || 0} />
-                <a href={`/school/${school._id}`}>View Details</a>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => {
+                    const newOrder = e.target.value;
+                    setSortOrder(newOrder);
+                    updateSortInParams(sortBy, newOrder);
+                  }}
+                  className="sr-select"
+                >
+                  <option value="desc">High to Low</option>
+                  <option value="asc">Low to High</option>
+                </select>
               </div>
-            ))}
-          </div>
 
-          <div className="pagination">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)}>Previous</button>
-            <span>Page {currentPage} of {totalPages}</span>
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)}>Next</button>
+              <button 
+                className="sr-btn sr-btn-link"
+                onClick={() => setFiltersOpen(!filtersOpen)}
+              >
+                {filtersOpen ? 'Hide' : 'Show'} Filters
+              </button>
+            </div>
           </div>
-        </>
-      )}
+        </div>
+      </header>
+
+      <div className="sr-main">
+        <div className="sr-container">
+          <div className="sr-layout">
+            <aside className={`sr-sidebar ${filtersOpen ? 'open' : ''}`}>
+              <div className="sr-filters">
+                <h3 className="sr-filters-title">Refine Your Search</h3>
+
+                <div className="sr-filter-group">
+                  <label className="sr-label">School Type</label>
+                  <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className="sr-input">
+                    <option value="">All Types</option>
+                    <option value="High School">High School</option>
+                    <option value="TVET">TVET</option>
+                    <option value="University">University</option>
+                  </select>
+                </div>
+
+                <div className="sr-filter-group">
+                  <label className="sr-label">Location</label>
+                  <input
+                    type="text"
+                    list="location-options"
+                    placeholder="Town or County"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="sr-input"
+                  />
+                  <datalist id="location-options">
+                    {filteredSuggestions.map((loc, i) => <option key={i} value={loc} />)}
+                  </datalist>
+                </div>
+
+                <div className="sr-filter-group">
+                  <label className="sr-label">Fee Range</label>
+                  <div className="sr-fee-inputs">
+                    <input
+                      type="number"
+                      placeholder="Min Fee"
+                      value={minFee}
+                      min="0"
+                      onChange={(e) => setMinFee(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="sr-input"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max Fee"
+                      value={maxFee}
+                      min="0"
+                      onChange={(e) => setMaxFee(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="sr-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="sr-rating-filters">
+                  <StarFilter label="⭐ Overall Rating" value={overallRating} setValue={setOverallRating} />
+                  <StarFilter label="📘 Academic Rating" value={academicRating} setValue={setAcademicRating} />
+                  <StarFilter label="🏫 Facilities Rating" value={facilitiesRating} setValue={setFacilitiesRating} />
+                  <StarFilter label="👩‍🏫 Teachers Rating" value={teachersRating} setValue={setTeachersRating} />
+                  <StarFilter label="🌳 Environment Rating" value={environmentRating} setValue={setEnvironmentRating} />
+                </div>
+
+                <div className="sr-filter-actions">
+                  <button onClick={handleApplyFilters} className="sr-btn sr-btn-primary">Apply Filters</button>
+                  <button onClick={handleClearFilters} className="sr-btn sr-btn-secondary">Clear All</button>
+                </div>
+              </div>
+            </aside>
+
+            <main className="sr-results">
+              {loading ? (
+                <div className="sr-loading">
+                  <div className="sr-spinner"></div>
+                  <p>Finding schools for you...</p>
+                </div>
+              ) : error ? (
+                <div className="sr-error"><p>😔 {error}</p></div>
+              ) : schools.length === 0 ? (
+                <div className="sr-no-results"><p>📚 No schools found matching your criteria. Try adjusting your filters!</p></div>
+              ) : (
+                <>
+
+                  <div className="sr-grid">
+                    {schools.map((school) => (
+                      <div key={school._id} className="sr-card">
+                        <h3 className="sr-card-title">{school.name}</h3>
+                        <p className="sr-card-meta">📍 {school.location?.city || 'Unknown City'}, {school.location?.state || 'Unknown State'}</p>
+                        <p className="sr-card-meta">🏫 {school.schoolType || 'Type not specified'}</p>
+                        <p className="sr-card-meta">{school.location?.address || 'Address not available'}</p>
+                        <StarRating value={school.ratings?.overall || 0} />
+                        <div className="sr-card-actions">
+                          <a href={`/school/${school._id}`} className="sr-btn sr-btn-outline">View Details</a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="sr-pagination">
+                    <button 
+                      disabled={currentPage === 1} 
+                      onClick={() => setCurrentPage(prev => prev - 1)}
+                      className="sr-btn"
+                    >
+                      Previous
+                    </button>
+                    <span>Page {currentPage} of {totalPages}</span>
+                    <button 
+                      disabled={currentPage === totalPages} 
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                      className="sr-btn"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              )}
+            </main>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

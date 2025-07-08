@@ -1,325 +1,823 @@
-/* Modern CSS for SchoolDetails */
-.school-details-container {
+/* schoolDetail.css - School Details Page */
+
+/* CSS Variables for consistency with theme */
+:root {
+  --primary-black: #1a1a1a;
+  --dark-gray: #2d2d2d;
+  --dark-green: #2d5016;
+  --primary-green: #4caf50;
+  --light-gray: #e0e0e0;
+  --border-gray: #ddd;
+  --white: #ffffff;
+  --border-radius: 12px;
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+  --transition: all 0.3s ease;
+  --success-green: #28a745;
+  --warning-orange: #fd7e14;
+  --danger-red: #dc3545;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.sd-wrapper {
+  background-color: #f9fafe;
+  color: #222;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+.sd-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.school-details-container h1 {
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  font-size: 2.5rem;
-}
-
-.school-details-container h3 {
-  color: #3498db;
-  margin: 2rem 0 1rem;
-  font-size: 1.5rem;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.5rem;
-}
-
-.location-info, .contact-info, .fees-info {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.ratings-list {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  list-style: none;
   padding: 0;
 }
 
-.ratings-list li {
-  background: #e8f4fd;
-  padding: 0.75rem 1.25rem;
-  border-radius: 20px;
-  font-weight: 500;
-}
-
-.facilities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  list-style: none;
-  padding: 0;
-}
-
-.facilities li {
-  background: #e8f4fd;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-}
-
-/* Tours List Styling */
-.tours-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 1.5rem;
-}
-
-.tours-list li {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tours-list li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-}
-
-.tour-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.tour-title {
-  margin: 0;
-  color: #2c3e50;
+/* LOADING STATES */
+.sd-loading {
+  text-align: center;
+  padding: 4rem 2rem;
   font-size: 1.2rem;
+  color: #666;
+  background: #fff;
+  margin: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
 }
 
-.tour-spots {
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
+/* HERO SECTION */
+.sd-hero {
+  position: relative;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
 }
 
-.tour-spots.low-spots {
-  background-color: #fff3cd;
-  color: #856404;
+.sd-hero-image {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
-.tour-spots.no-spots {
-  background-color: #f8d7da;
-  color: #721c24;
+.sd-school-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.tour-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.tour-detail-item {
+.sd-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(45, 45, 45, 0.6) 25%, rgba(45, 80, 22, 0.7) 75%, rgba(76, 175, 80, 0.8) 100%);
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
+  padding: 2rem;
 }
 
-.tour-detail-item label {
-  font-size: 0.85rem;
-  color: #7f8c8d;
+.sd-hero-content {
+  color: #fff;
+  width: 100%;
+}
+
+.sd-school-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.sd-school-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.sd-school-type,
+.sd-school-location {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+/* MAIN CONTENT */
+.sd-content {
+  padding: 2rem;
+}
+
+.sd-section {
+  margin-bottom: 3rem;
+}
+
+.sd-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-black);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* OVERVIEW SECTION */
+.sd-overview-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+}
+
+.sd-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* RATINGS SECTION */
+.sd-ratings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.sd-rating-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: var(--transition);
+}
+
+.sd-rating-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.sd-rating-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+  border-radius: 50%;
+  color: #fff;
+}
+
+.sd-rating-content {
+  flex: 1;
+}
+
+.sd-rating-label {
+  font-size: 0.9rem;
+  color: #666;
   margin-bottom: 0.25rem;
 }
 
-/* Form Elements */
-.form-group {
-  margin-bottom: 1rem;
+.sd-rating-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-green);
 }
 
-.form-group label {
+/* FACILITIES SECTION */
+.sd-facilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  background: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+}
+
+.sd-facility-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: var(--transition);
+}
+
+.sd-facility-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+}
+
+.sd-facility-icon {
+  font-size: 1.2rem;
+  color: var(--primary-green);
+}
+
+.sd-facility-name {
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+/* FEES SECTION */
+.sd-fees-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--primary-green);
+}
+
+.sd-fees-content {
+  text-align: center;
+}
+
+.sd-fees-range {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sd-fees-label {
+  font-size: 1.1rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.sd-fees-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+/* CONTACT SECTION */
+.sd-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.sd-contact-item {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: var(--transition);
+}
+
+.sd-contact-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.sd-contact-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+  border-radius: 50%;
+}
+
+.sd-contact-content {
+  flex: 1;
+}
+
+.sd-contact-label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.25rem;
 }
 
-select, textarea {
+.sd-contact-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+/* NO TOURS STATE */
+.sd-no-tours {
+  background: #fff;
+  padding: 3rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  text-align: center;
+}
+
+.sd-no-tours-content {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.sd-no-tours-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.sd-no-tours h3 {
+  font-size: 1.5rem;
+  color: var(--dark-gray);
+  margin-bottom: 0.5rem;
+}
+
+.sd-no-tours p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* TOURS SECTION */
+.sd-tours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.sd-tour-card {
+  background: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.sd-tour-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.sd-tour-header {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+  color: #fff;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sd-tour-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.sd-tour-spots {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.sd-tour-spots.sd-low-spots {
+  background: rgba(253, 126, 20, 0.9);
+}
+
+.sd-tour-spots.sd-no-spots {
+  background: rgba(220, 53, 69, 0.9);
+}
+
+.sd-tour-details {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sd-tour-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sd-tour-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.sd-tour-detail-icon {
+  font-size: 1.2rem;
+  width: 30px;
+  text-align: center;
+}
+
+.sd-tour-detail-label {
+  font-weight: 600;
+  color: var(--dark-gray);
+  min-width: 60px;
+}
+
+.sd-tour-detail-value {
+  color: #555;
+}
+
+/* TOUR REQUIREMENTS */
+.sd-tour-requirements {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sd-requirements-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dark-gray);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sd-requirements-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sd-requirement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.sd-requirement-bullet {
+  color: var(--primary-green);
+  font-weight: 700;
+  margin-top: 0.1rem;
+}
+
+/* TOUR FORM */
+.sd-tour-form {
+  padding: 1.5rem;
+}
+
+.sd-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.sd-form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--dark-gray);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.sd-form-select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  background: #fff;
+  transition: var(--transition);
 }
 
-select:focus, textarea:focus {
+.sd-form-select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
-textarea {
-  min-height: 100px;
+.sd-form-select:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.sd-form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
   resize: vertical;
+  min-height: 100px;
+  transition: var(--transition);
 }
 
-/* Buttons */
-.btn {
+.sd-form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* BOOKING ACTIONS */
+.sd-booking-actions {
+  margin-top: 1rem;
+}
+
+.sd-booking-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.sd-guests-selector {
+  flex: 1;
+  min-width: 120px;
+}
+
+.sd-guests-select {
+  width: 100%;
+}
+
+/* BUTTONS */
+.sd-btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
+  transition: var(--transition);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  text-decoration: none;
+  text-align: center;
+  min-width: 140px;
 }
 
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
-}
-
-.btn-success {
-  background-color: #2ecc71;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #27ae60;
-}
-
-.btn-danger {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c0392b;
-}
-
-.btn-warning {
-  background-color: #f39c12;
-  color: white;
-}
-
-.btn-warning:hover {
-  background-color: #d35400;
-}
-
-.btn:disabled {
+.sd-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none !important;
 }
 
-/* Booking Actions */
-.booking-actions {
+.sd-btn-primary {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.sd-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+}
+
+.sd-btn-secondary {
+  background: #f8f9fa;
+  color: #495057;
+  border: 2px solid #e9ecef;
+}
+
+.sd-btn-secondary:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.sd-btn-success {
+  background: linear-gradient(135deg, var(--success-green) 0%, #1e7e34 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.sd-btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+}
+
+.sd-btn-warning {
+  background: linear-gradient(135deg, var(--warning-orange) 0%, #e8590c 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+}
+
+.sd-btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(253, 126, 20, 0.4);
+}
+
+.sd-btn-danger {
+  background: linear-gradient(135deg, var(--danger-red) 0%, #c82333 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.sd-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}
+
+.sd-btn-outline {
+  background: #fff;
+  color: var(--primary-green);
+  border: 2px solid var(--primary-green);
+}
+
+.sd-btn-outline:hover {
+  background: var(--primary-green);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* COMPARE SECTION */
+.sd-compare-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+}
+
+.sd-compare-description {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.sd-compare-actions {
   display: flex;
-  align-items: center;
   gap: 1rem;
-  margin-top: 1.5rem;
   flex-wrap: wrap;
 }
 
-.guests-selector {
+/* RATE SECTION */
+.sd-rate-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+}
+
+.sd-rate-description {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.sd-rating-grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sd-rating-form-item {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.sd-rating-form-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
 }
 
-.guests-selector label {
-  margin-bottom: 0;
-}
-
-.guests-selector select {
-  width: auto;
-  min-width: 60px;
-}
-
-/* Rating Section */
-.rate-section {
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-}
-
-.rating-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-.rating-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.rating-item label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-/* Loading State */
-.loading {
-  text-align: center;
-  padding: 2rem;
+.sd-rating-form-icon {
   font-size: 1.2rem;
-  color: #7f8c8d;
 }
 
-/* Compare Section */
-.compare-section {
-  background-color: #fff8e1;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-.compare-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-.btn-outline {
-  background: transparent;
-  border: 2px solid #3498db;
-  color: #3498db;
-}
-
-.btn-outline:hover {
-  background: #3498db;
-  color: white;
-}
-
-/* Responsive Adjustments */
+/* MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
-  .school-details-container {
+  .sd-content {
     padding: 1rem;
   }
-  
-  .tour-details {
+
+  .sd-school-title {
+    font-size: 2rem;
+  }
+
+  .sd-school-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sd-hero-overlay {
+    padding: 1rem;
+  }
+
+  .sd-section-title {
+    font-size: 1.5rem;
+  }
+
+  .sd-ratings-grid {
     grid-template-columns: 1fr;
   }
-  
-  .rating-grid {
+
+  .sd-facilities-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sd-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sd-tours-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sd-tour-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .sd-booking-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sd-guests-selector {
+    min-width: 100%;
+  }
+
+  .sd-btn {
+    min-width: 100%;
+  }
+
+  .sd-compare-actions {
+    flex-direction: column;
+  }
+
+  .sd-rating-grid-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .sd-hero {
+    height: 300px;
+  }
+
+  .sd-school-title {
+    font-size: 1.5rem;
+  }
+
+  .sd-content {
+    padding: 0.75rem;
+  }
+
+  .sd-overview-card,
+  .sd-fees-card,
+  .sd-compare-card,
+  .sd-rate-card {
+    padding: 1.5rem;
+  }
+
+  .sd-rating-card,
+  .sd-contact-item {
+    padding: 1rem;
+  }
+
+  .sd-tour-card {
+    margin-bottom: 1rem;
+  }
+
+  .sd-tour-header,
+  .sd-tour-details,
+  .sd-tour-requirements,
+  .sd-tour-form {
+    padding: 1rem;
+  }
+
+  .sd-fees-amount {
+    font-size: 1.5rem;
+  }
+
+  .sd-rating-value {
+    font-size: 1.5rem;
   }
 }

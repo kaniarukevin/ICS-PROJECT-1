@@ -1,6 +1,6 @@
-// frontend/src/pages/Login.jsx (Updated)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './login.css';
 
 const Login = () => {
 	const [formData, setFormData] = useState({
@@ -72,56 +72,20 @@ const Login = () => {
 	};
 
 	return (
-		<div style={{ 
-			minHeight: '100vh',
-			backgroundColor: '#f8f9fa',
-			display: 'flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			padding: '2rem'
-		}}>
-			<div style={{ 
-				maxWidth: '500px',
-				width: '100%'
-			}}>
+		<div className="lg-wrapper">
+			<div className="lg-container">
 				{/* Header */}
-				<div style={{ 
-					textAlign: 'center',
-					marginBottom: '2rem'
-				}}>
-					<h1 style={{ 
-						color: '#333',
-						marginBottom: '0.5rem',
-						fontSize: '2.5rem'
-					}}>
-						🏫 School Tours
-					</h1>
-					<p style={{ 
-						color: '#666',
-						margin: 0,
-						fontSize: '1.1rem'
-					}}>
-						Sign in to your account
-					</p>
+				<div className="lg-header">
+					<h1 className="lg-title">EduSearch</h1>
+					<p className="lg-subtitle">Sign in to your account</p>
 				</div>
 
 				{/* Login Form */}
-				<div style={{
-					backgroundColor: 'white',
-					padding: '2rem',
-					borderRadius: '12px',
-					boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-					marginBottom: '2rem'
-				}}>
-					<form onSubmit={handleSubmit}>
-						<div style={{ marginBottom: '1rem' }}>
-							<label style={{ 
-								display: 'block',
-								marginBottom: '0.5rem',
-								fontWeight: '500',
-								color: '#333'
-							}}>
-								Email Address:
+				<div className="lg-form-card">
+					<form onSubmit={handleSubmit} className="lg-form">
+						<div className="lg-form-group">
+							<label className="lg-label">
+								📧 Email Address
 							</label>
 							<input
 								type="email"
@@ -129,25 +93,14 @@ const Login = () => {
 								value={formData.email}
 								onChange={handleChange}
 								required
-								placeholder="Enter your email"
-								style={{
-									width: '100%',
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
+								placeholder="Enter your email address"
+								className="lg-input"
 							/>
 						</div>
 
-						<div style={{ marginBottom: '1.5rem' }}>
-							<label style={{ 
-								display: 'block',
-								marginBottom: '0.5rem',
-								fontWeight: '500',
-								color: '#333'
-							}}>
-								Password:
+						<div className="lg-form-group">
+							<label className="lg-label">
+								🔒 Password
 							</label>
 							<input
 								type="password"
@@ -156,26 +109,13 @@ const Login = () => {
 								onChange={handleChange}
 								required
 								placeholder="Enter your password"
-								style={{
-									width: '100%',
-									padding: '0.75rem',
-									border: '1px solid #ddd',
-									borderRadius: '4px',
-									fontSize: '1rem'
-								}}
+								className="lg-input"
 							/>
 						</div>
 
 						{error && (
-							<div style={{ 
-								color: '#dc3545',
-								margin: '1rem 0',
-								textAlign: 'center',
-								padding: '0.75rem',
-								backgroundColor: '#f8d7da',
-								borderRadius: '4px',
-								border: '1px solid #f5c6cb'
-							}}>
+							<div className="lg-error">
+								<span className="lg-error-icon">⚠️</span>
 								{error}
 							</div>
 						)}
@@ -183,35 +123,14 @@ const Login = () => {
 						<button 
 							type="submit" 
 							disabled={loading}
-							style={{
-								width: '100%',
-								padding: '0.75rem',
-								backgroundColor: loading ? '#ccc' : '#007bff',
-								color: 'white',
-								border: 'none',
-								borderRadius: '8px',
-								fontSize: '1.1rem',
-								fontWeight: 'bold',
-								cursor: loading ? 'not-allowed' : 'pointer',
-								marginBottom: '1rem'
-							}}
+							className={`lg-btn lg-btn-primary ${loading ? 'lg-btn-loading' : ''}`}
 						>
 							{loading ? '⏳ Signing In...' : '🔐 Sign In'}
 						</button>
 
 						{/* Forgot Password Link */}
-						<div style={{ textAlign: 'center' }}>
-							<button
-								type="button"
-								style={{
-									background: 'none',
-									border: 'none',
-									color: '#007bff',
-									textDecoration: 'underline',
-									cursor: 'pointer',
-									fontSize: '0.9rem'
-								}}
-							>
+						<div className="lg-forgot-password">
+							<button type="button" className="lg-forgot-link">
 								Forgot your password?
 							</button>
 						</div>
@@ -219,93 +138,30 @@ const Login = () => {
 				</div>
 
 				{/* Registration Options */}
-				<div style={{
-					backgroundColor: 'white',
-					padding: '2rem',
-					borderRadius: '12px',
-					boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-					marginBottom: '2rem'
-				}}>
-					<h3 style={{ 
-						textAlign: 'center',
-						color: '#333',
-						marginBottom: '1.5rem'
-					}}>
+				<div className="lg-register-card">
+					<h3 className="lg-register-title">
 						Don't have an account?
 					</h3>
 					
-					<div style={{ 
-						display: 'grid',
-						gap: '1rem'
-					}}>
+					<div className="lg-register-options">
 						<button
 							onClick={() => navigate('/select-role')}
-							style={{
-								padding: '1rem',
-								backgroundColor: '#28a745',
-								color: 'white',
-								border: 'none',
-								borderRadius: '8px',
-								fontSize: '1.1rem',
-								fontWeight: 'bold',
-								cursor: 'pointer',
-								transition: 'background-color 0.3s'
-							}}
-							onMouseEnter={(e) => e.target.style.backgroundColor = '#218838'}
-							onMouseLeave={(e) => e.target.style.backgroundColor = '#28a745'}
+							className="lg-btn lg-btn-success lg-btn-main"
 						>
 							🚀 Get Started - Choose Your Role
 						</button>
 
-						<div style={{ 
-							display: 'grid',
-							gridTemplateColumns: '1fr 1fr',
-							gap: '1rem'
-						}}>
+						<div className="lg-role-buttons">
 							<button
 								onClick={() => navigate('/register/parent')}
-								style={{
-									padding: '0.75rem',
-									backgroundColor: 'transparent',
-									color: '#28a745',
-									border: '2px solid #28a745',
-									borderRadius: '6px',
-									fontSize: '0.9rem',
-									cursor: 'pointer',
-									transition: 'all 0.3s'
-								}}
-								onMouseEnter={(e) => {
-									e.target.style.backgroundColor = '#28a745';
-									e.target.style.color = 'white';
-								}}
-								onMouseLeave={(e) => {
-									e.target.style.backgroundColor = 'transparent';
-									e.target.style.color = '#28a745';
-								}}
+								className="lg-btn lg-btn-outline lg-btn-parent"
 							>
 								👨‍👩‍👧‍👦 Parent
 							</button>
 
 							<button
 								onClick={() => navigate('/register/school-admin')}
-								style={{
-									padding: '0.75rem',
-									backgroundColor: 'transparent',
-									color: '#007bff',
-									border: '2px solid #007bff',
-									borderRadius: '6px',
-									fontSize: '0.9rem',
-									cursor: 'pointer',
-									transition: 'all 0.3s'
-								}}
-								onMouseEnter={(e) => {
-									e.target.style.backgroundColor = '#007bff';
-									e.target.style.color = 'white';
-								}}
-								onMouseLeave={(e) => {
-									e.target.style.backgroundColor = 'transparent';
-									e.target.style.color = '#007bff';
-								}}
+								className="lg-btn lg-btn-outline lg-btn-school"
 							>
 								🏫 School Admin
 							</button>
@@ -314,76 +170,34 @@ const Login = () => {
 				</div>
 
 				{/* Quick Login for Testing */}
-				<div style={{
-					backgroundColor: '#e9ecef',
-					padding: '1.5rem',
-					borderRadius: '8px',
-					border: '1px solid #dee2e6'
-				}}>
-					<h4 style={{ 
-						color: '#495057',
-						marginBottom: '1rem',
-						textAlign: 'center'
-					}}>
+				<div className="lg-testing-card">
+					<h4 className="lg-testing-title">
 						🧪 Quick Login (For Testing)
 					</h4>
 					
-					<div style={{ 
-						display: 'grid',
-						gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-						gap: '0.5rem',
-						marginBottom: '1rem'
-					}}>
+					<div className="lg-test-buttons">
 						<button
 							onClick={() => handleQuickLogin('parent')}
-							style={{
-								padding: '0.5rem',
-								backgroundColor: '#28a745',
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-								fontSize: '0.8rem',
-								cursor: 'pointer'
-							}}
+							className="lg-test-btn lg-test-parent"
 						>
 							👨‍👩‍👧‍👦 Parent
 						</button>
 						<button
 							onClick={() => handleQuickLogin('school_admin')}
-							style={{
-								padding: '0.5rem',
-								backgroundColor: '#007bff',
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-								fontSize: '0.8rem',
-								cursor: 'pointer'
-							}}
+							className="lg-test-btn lg-test-school"
 						>
 							🏫 School Admin
 						</button>
 						<button
 							onClick={() => handleQuickLogin('system_admin')}
-							style={{
-								padding: '0.5rem',
-								backgroundColor: '#dc3545',
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-								fontSize: '0.8rem',
-								cursor: 'pointer'
-							}}
+							className="lg-test-btn lg-test-system"
 						>
 							⚙️ System Admin
 						</button>
 					</div>
 					
-					<div style={{ 
-						fontSize: '0.8rem',
-						color: '#6c757d',
-						textAlign: 'center'
-					}}>
-						<p style={{ margin: 0 }}>
+					<div className="lg-test-info">
+						<p className="lg-test-text">
 							<strong>Test Accounts:</strong><br />
 							parent@test.com | schooladmin@test.com | systemadmin@test.com<br />
 							<em>Password: password123</em>
