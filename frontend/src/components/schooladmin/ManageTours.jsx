@@ -8,32 +8,10 @@ const ManageTours = () => {
 	const [submitting, setSubmitting] = useState(false);
 	const [filter, setFilter] = useState('all');
 	const [formData, setFormData] = useState({
-		title: '',
-		description: '',
-		date: '',
-		duration: '90',
-		maxCapacity: '',
-		tourType: 'Physical',
-		meetingPoint: 'Main Reception',
-		highlights: '',
-		requirements: '',
-		notes: '',
-		timeSlots: [{ startTime: '' }]
+		title: '', description: '', date: '', duration: '90', maxCapacity: '',
+		tourType: 'Physical', meetingPoint: 'Main Reception', highlights: '',
+		requirements: '', notes: '', timeSlots: [{ startTime: '' }]
 	});
-
-	// Theme colors - Blue scheme
-	const colors = {
-		primaryBlue: '#007bff',
-		darkBlue: '#0056b3',
-		lightBlue: '#e3f2fd',
-		successGreen: '#28a745',
-		dangerRed: '#dc3545',
-		warningOrange: '#fd7e14',
-		darkGray: '#2d2d2d',
-		lightGray: '#f8f9fa',
-		white: '#ffffff',
-		borderGray: '#ddd'
-	};
 
 	useEffect(() => {
 		fetchTours();
@@ -146,17 +124,9 @@ const ManageTours = () => {
 
 	const resetForm = () => {
 		setFormData({
-			title: '',
-			description: '',
-			date: '',
-			duration: '90',
-			maxCapacity: '',
-			tourType: 'Physical',
-			meetingPoint: 'Main Reception',
-			highlights: '',
-			requirements: '',
-			notes: '',
-			timeSlots: [{ startTime: '' }]
+			title: '', description: '', date: '', duration: '90', maxCapacity: '',
+			tourType: 'Physical', meetingPoint: 'Main Reception', highlights: '',
+			requirements: '', notes: '', timeSlots: [{ startTime: '' }]
 		});
 		setEditingTour(null);
 		setShowForm(false);
@@ -187,297 +157,35 @@ const ManageTours = () => {
 		}
 	};
 
-	// Styling objects
-	const wrapperStyle = {
-		padding: '2rem',
-		backgroundColor: '#f9fafe',
-		minHeight: '100vh',
-		fontFamily: '"Segoe UI", sans-serif'
-	};
-
-	const containerStyle = {
-		maxWidth: '1200px',
-		margin: '0 auto'
-	};
-
-	const headerStyle = {
-		fontSize: '2.5rem',
-		fontWeight: '700',
-		marginBottom: '2rem',
-		color: colors.darkGray,
-		textAlign: 'center',
-		background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
-		WebkitBackgroundClip: 'text',
-		WebkitTextFillColor: 'transparent',
-		backgroundClip: 'text'
-	};
-
-	const createButtonStyle = {
-		background: showForm 
-			? `linear-gradient(135deg, ${colors.dangerRed} 0%, #c82333 100%)`
-			: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
-		color: colors.white,
-		padding: '1rem 2rem',
-		border: 'none',
-		borderRadius: '12px',
-		cursor: 'pointer',
-		marginBottom: '2rem',
-		fontSize: '1.1rem',
-		fontWeight: '600',
-		boxShadow: showForm 
-			? '0 4px 15px rgba(220, 53, 69, 0.3)'
-			: '0 4px 15px rgba(0, 123, 255, 0.3)',
-		transition: 'all 0.3s ease',
-		display: 'flex',
-		alignItems: 'center',
-		gap: '0.5rem'
-	};
-
-	const filterContainerStyle = {
-		marginBottom: '2rem',
-		display: 'flex',
-		gap: '1rem',
-		flexWrap: 'wrap'
-	};
-
-	const getFilterButtonStyle = (f) => ({
-		padding: '0.75rem 1.5rem',
-		border: filter === f ? 'none' : `2px solid ${colors.primaryBlue}`,
-		borderRadius: '25px',
-		background: filter === f 
-			? `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`
-			: colors.white,
-		color: filter === f ? colors.white : colors.primaryBlue,
-		cursor: 'pointer',
-		fontWeight: filter === f ? '700' : '600',
-		fontSize: '0.9rem',
-		textTransform: 'uppercase',
-		letterSpacing: '0.5px',
-		transition: 'all 0.3s ease',
-		boxShadow: filter === f 
-			? '0 4px 15px rgba(0, 123, 255, 0.3)'
-			: '0 2px 4px rgba(0,0,0,0.1)'
-	});
-
-	const formStyle = {
-		background: colors.white,
-		padding: '2.5rem',
-		borderRadius: '12px',
-		marginBottom: '2rem',
-		border: `1px solid ${colors.borderGray}`,
-		boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-		position: 'relative'
-	};
-
-	const formHeaderStyle = {
-		position: 'absolute',
-		top: '0',
-		left: '0',
-		right: '0',
-		height: '4px',
-		background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
-		borderRadius: '12px 12px 0 0'
-	};
-
-	const inputStyle = {
-		display: 'block',
-		width: '100%',
-		margin: '1rem 0',
-		padding: '1rem 1.25rem',
-		border: `2px solid #e1e5e9`,
-		borderRadius: '10px',
-		fontSize: '1rem',
-		fontFamily: 'inherit',
-		transition: 'all 0.3s ease',
-		background: '#fafbfc',
-		boxSizing: 'border-box'
-	};
-
-	const inputFocusStyle = {
-		outline: 'none',
-		borderColor: colors.primaryBlue,
-		boxShadow: `0 0 0 4px rgba(0, 123, 255, 0.15)`,
-		background: colors.white,
-		transform: 'translateY(-2px)'
-	};
-
-	const textAreaStyle = {
-		...inputStyle,
-		resize: 'vertical',
-		minHeight: '100px',
-		fontFamily: 'inherit'
-	};
-
-	const labelStyle = {
-		display: 'block',
-		fontWeight: '700',
-		color: colors.darkGray,
-		marginBottom: '0.5rem',
-		fontSize: '1rem'
-	};
-
-	const timeSlotContainerStyle = {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '1rem',
-		marginBottom: '1rem',
-		padding: '1rem',
-		background: colors.lightBlue,
-		borderRadius: '8px',
-		border: `1px solid ${colors.primaryBlue}20`
-	};
-
-	const submitButtonStyle = {
-		padding: '1.25rem 2rem',
-		background: submitting 
-			? 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)'
-			: `linear-gradient(135deg, ${colors.successGreen} 0%, #1e7e34 100%)`,
-		color: colors.white,
-		border: 'none',
-		borderRadius: '12px',
-		cursor: submitting ? 'not-allowed' : 'pointer',
-		marginTop: '1.5rem',
-		fontSize: '1.1rem',
-		fontWeight: '700',
-		width: '100%',
-		boxShadow: submitting 
-			? 'none'
-			: '0 4px 15px rgba(40, 167, 69, 0.3)',
-		transition: 'all 0.3s ease',
-		opacity: submitting ? 0.7 : 1
-	};
-
-	const tourCardStyle = {
-		background: colors.white,
-		padding: '2rem',
-		marginBottom: '2rem',
-		borderRadius: '12px',
-		border: `1px solid ${colors.borderGray}`,
-		boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-		transition: 'all 0.3s ease'
-	};
-
-	const tourTitleStyle = {
-		fontSize: '1.4rem',
-		fontWeight: '700',
-		color: colors.darkGray,
-		marginBottom: '1rem'
-	};
-
-	const tourDetailStyle = {
-		margin: '0.5rem 0',
-		color: '#666',
-		fontSize: '0.95rem',
-		lineHeight: '1.5'
-	};
-
-	const actionButtonsStyle = {
-		display: 'flex',
-		gap: '0.75rem',
-		marginTop: '1.5rem',
-		flexWrap: 'wrap'
-	};
-
-	const getActionButtonStyle = (type) => {
-		const styles = {
-			edit: {
-				background: `linear-gradient(135deg, ${colors.primaryBlue} 0%, ${colors.darkBlue} 100%)`,
-				boxShadow: '0 2px 4px rgba(0, 123, 255, 0.3)'
-			},
-			toggle: {
-				background: `linear-gradient(135deg, ${colors.warningOrange} 0%, #e8590c 100%)`,
-				boxShadow: '0 2px 4px rgba(253, 126, 20, 0.3)'
-			},
-			delete: {
-				background: `linear-gradient(135deg, ${colors.dangerRed} 0%, #c82333 100%)`,
-				boxShadow: '0 2px 4px rgba(220, 53, 69, 0.3)'
-			}
-		};
-
-		return {
-			padding: '0.75rem 1.25rem',
-			color: colors.white,
-			border: 'none',
-			borderRadius: '8px',
-			cursor: 'pointer',
-			fontSize: '0.9rem',
-			fontWeight: '600',
-			transition: 'all 0.3s ease',
-			display: 'flex',
-			alignItems: 'center',
-			gap: '0.5rem',
-			...styles[type]
-		};
-	};
-
-	const loadingStyle = {
-		padding: '4rem 2rem',
-		textAlign: 'center',
-		fontSize: '1.2rem',
-		color: '#666',
-		background: colors.white,
-		borderRadius: '12px',
-		boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-	};
-
 	if (loading) {
 		return (
-			<div style={wrapperStyle}>
-				<div style={containerStyle}>
-					<div style={loadingStyle}>
-						⏳ Loading tours...
-					</div>
-				</div>
+			<div className="tours-wrapper">
+				<div className="loading-container">⏳ Loading tours...</div>
+				<style>{tourStyles}</style>
 			</div>
 		);
 	}
 
 	return (
-		<div className="mt-wrapper" style={wrapperStyle}>
-			<div className="mt-container" style={containerStyle}>
-				<h2 className="mt-header" style={headerStyle}>Manage School Tours</h2>
+		<div className="tours-wrapper">
+			<div className="tours-container">
+				<h2 className="tours-header">Manage School Tours</h2>
 
 				{/* Create Button */}
 				<button
-					className="mt-create-btn"
 					onClick={() => showForm ? resetForm() : setShowForm(true)}
-					style={createButtonStyle}
-					onMouseEnter={(e) => {
-						e.target.style.transform = 'translateY(-3px)';
-						e.target.style.boxShadow = showForm 
-							? '0 8px 25px rgba(220, 53, 69, 0.4)'
-							: '0 8px 25px rgba(0, 123, 255, 0.4)';
-					}}
-					onMouseLeave={(e) => {
-						e.target.style.transform = 'translateY(0)';
-						e.target.style.boxShadow = showForm 
-							? '0 4px 15px rgba(220, 53, 69, 0.3)'
-							: '0 4px 15px rgba(0, 123, 255, 0.3)';
-					}}
+					className={`create-btn ${showForm ? 'cancel' : 'create'}`}
 				>
 					{showForm ? '✖ Cancel' : '➕ Create New Tour'}
 				</button>
 
 				{/* Filter Buttons */}
-				<div className="mt-filters" style={filterContainerStyle}>
+				<div className="filters">
 					{['all', 'active', 'inactive', 'upcoming'].map((f) => (
 						<button
 							key={f}
-							className={`mt-filter-btn ${filter === f ? 'mt-filter-active' : ''}`}
 							onClick={() => setFilter(f)}
-							style={getFilterButtonStyle(f)}
-							onMouseEnter={(e) => {
-								if (filter !== f) {
-									e.target.style.background = colors.lightBlue;
-									e.target.style.transform = 'translateY(-2px)';
-								}
-							}}
-							onMouseLeave={(e) => {
-								if (filter !== f) {
-									e.target.style.background = colors.white;
-									e.target.style.transform = 'translateY(0)';
-								}
-							}}
+							className={`filter-btn ${filter === f ? 'active' : ''}`}
 						>
 							{f.toUpperCase()} ({getFilteredTours().length})
 						</button>
@@ -486,87 +194,47 @@ const ManageTours = () => {
 
 				{/* Tour Form */}
 				{showForm && (
-					<form className="mt-form" onSubmit={handleSubmit} style={formStyle}>
-						<div style={formHeaderStyle}></div>
+					<form onSubmit={handleSubmit} className="tour-form">
+						<div className="form-header"></div>
 						
 						<input
-							className="mt-input"
 							type="text"
 							placeholder="📛 Tour Title"
 							value={formData.title}
 							required
 							onChange={e => setFormData({ ...formData, title: e.target.value })}
-							style={inputStyle}
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-input"
 						/>
 						
 						<textarea
-							className="mt-textarea"
 							placeholder="📝 Tour Description"
 							value={formData.description}
 							required
 							onChange={e => setFormData({ ...formData, description: e.target.value })}
-							style={textAreaStyle}
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-textarea"
 						/>
 						
 						<input 
-							className="mt-input"
 							type="date" 
 							value={formData.date} 
 							required 
 							onChange={e => setFormData({ ...formData, date: e.target.value })} 
-							style={inputStyle} 
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-input"
 						/>
 						
 						<input 
-							className="mt-input"
 							type="number" 
 							placeholder="👥 Maximum Capacity" 
 							value={formData.maxCapacity} 
 							required 
 							onChange={e => setFormData({ ...formData, maxCapacity: e.target.value })} 
-							style={inputStyle} 
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-input"
 						/>
 						
 						<select 
-							className="mt-select"
 							value={formData.duration} 
 							onChange={e => setFormData({ ...formData, duration: e.target.value })} 
-							style={inputStyle}
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-input"
 						>
 							<option value="60">⏱️ 60 minutes</option>
 							<option value="90">⏱️ 90 minutes</option>
@@ -574,11 +242,10 @@ const ManageTours = () => {
 						</select>
 
 						{/* Time Slots */}
-						<label style={labelStyle}>🕒 Time Slots</label>
+						<label className="form-label">🕒 Time Slots</label>
 						{formData.timeSlots.map((slot, i) => (
-							<div key={i} className="mt-time-slot" style={timeSlotContainerStyle}>
+							<div key={i} className="time-slot">
 								<input
-									className="mt-time-input"
 									type="time"
 									value={slot.startTime}
 									required
@@ -587,9 +254,9 @@ const ManageTours = () => {
 										updated[i].startTime = e.target.value;
 										setFormData({ ...formData, timeSlots: updated });
 									}}
-									style={{ ...inputStyle, width: '150px', margin: '0' }}
+									className="time-input"
 								/>
-								<span style={{ fontWeight: '600', color: colors.darkGray }}>
+								<span className="time-display">
 									➡ Ends at {slot.startTime ? calculateEndTime(slot.startTime, formData.duration) : '--:--'}
 								</span>
 								{formData.timeSlots.length > 1 && (
@@ -598,7 +265,7 @@ const ManageTours = () => {
 										onClick={() => {
 											setFormData({ ...formData, timeSlots: formData.timeSlots.filter((_, idx) => idx !== i) });
 										}}
-										style={getActionButtonStyle('delete')}
+										className="remove-btn"
 									>
 										❌ Remove
 									</button>
@@ -611,73 +278,37 @@ const ManageTours = () => {
 								onClick={() =>
 									setFormData({ ...formData, timeSlots: [...formData.timeSlots, { startTime: '' }] })
 								}
-								style={{...getActionButtonStyle('edit'), margin: '1rem 0'}}
+								className="add-slot-btn"
 							>
 								➕ Add Time Slot
 							</button>
 						)}
 
 						<textarea 
-							className="mt-textarea"
 							placeholder="Tour Highlights (one per line)" 
 							value={formData.highlights} 
 							onChange={e => setFormData({ ...formData, highlights: e.target.value })} 
-							style={textAreaStyle} 
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-textarea"
 						/>
 						
 						<textarea 
-							className="mt-textarea"
 							placeholder="Tour Requirements (one per line)" 
 							value={formData.requirements} 
 							onChange={e => setFormData({ ...formData, requirements: e.target.value })} 
-							style={textAreaStyle} 
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-textarea"
 						/>
 						
 						<textarea 
-							className="mt-textarea"
 							placeholder="📝 Additional Notes" 
 							value={formData.notes} 
 							onChange={e => setFormData({ ...formData, notes: e.target.value })} 
-							style={textAreaStyle} 
-							onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-							onBlur={(e) => {
-								e.target.style.borderColor = '#e1e5e9';
-								e.target.style.boxShadow = 'none';
-								e.target.style.background = '#fafbfc';
-								e.target.style.transform = 'translateY(0)';
-							}}
+							className="form-textarea"
 						/>
 
 						<button 
 							type="submit" 
 							disabled={submitting} 
-							style={submitButtonStyle}
-							onMouseEnter={(e) => {
-								if (!submitting) {
-									e.target.style.transform = 'translateY(-3px)';
-									e.target.style.boxShadow = '0 8px 25px rgba(40, 167, 69, 0.4)';
-								}
-							}}
-							onMouseLeave={(e) => {
-								if (!submitting) {
-									e.target.style.transform = 'translateY(0)';
-									e.target.style.boxShadow = '0 4px 15px rgba(40, 167, 69, 0.3)';
-								}
-							}}
+							className="submit-btn"
 						>
 							{submitting ? '⏳ Saving...' : (editingTour ? '✏️ Update Tour' : '✅ Create Tour')}
 						</button>
@@ -685,107 +316,100 @@ const ManageTours = () => {
 				)}
 
 				{/* Tour Cards */}
-				<div className="mt-tours-container">
+				<div className="tours-list">
 					{getFilteredTours().map(tour => (
-						<div 
-							key={tour._id} 
-							className="mt-tour-card" 
-							style={tourCardStyle}
-							onMouseEnter={(e) => {
-								e.target.style.transform = 'translateY(-4px)';
-								e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.target.style.transform = 'translateY(0)';
-								e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-							}}
-						>
-							<h3 className="mt-tour-title" style={tourTitleStyle}>{tour.title}</h3>
-							<p className="mt-tour-description" style={tourDetailStyle}>{tour.description}</p>
-							<p className="mt-tour-date" style={tourDetailStyle}>📅 <strong>Date:</strong> {new Date(tour.date).toLocaleDateString()}</p>
-							<div className="mt-tour-slots" style={tourDetailStyle}>
-								<p><strong>🕒 Time Slots:</strong></p>
-								<ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+						<div key={tour._id} className="tour-card">
+							<h3>{tour.title}</h3>
+							<p>{tour.description}</p>
+							<div className="tour-details">
+								<div>📅 <strong>Date:</strong> {new Date(tour.date).toLocaleDateString()}</div>
+								<div><strong>🕒 Time Slots:</strong></div>
+								<ul>
 									{tour.timeSlots?.map((slot, i) => (
-										<li key={i} style={{ margin: '0.25rem 0' }}>{slot.startTime} – {slot.endTime}</li>
+										<li key={i}>{slot.startTime} – {slot.endTime}</li>
 									))}
 								</ul>
+								<div>👥 <strong>Capacity:</strong> {tour.currentBookings || 0}/{tour.maxCapacity} booked</div>
+								<div>📍 <strong>Meeting Point:</strong> {tour.meetingPoint}</div>
+								<div>🎯 <strong>Type:</strong> {tour.tourType}</div>
+								<div className={`status ${tour.isActive ? 'active' : 'inactive'}`}>
+									{tour.isActive ? '✅ Active' : '❌ Inactive'}
+								</div>
 							</div>
-							<p className="mt-tour-capacity" style={tourDetailStyle}>
-								👥 <strong>Capacity:</strong> {tour.currentBookings || 0}/{tour.maxCapacity} booked
-							</p>
-							<p className="mt-tour-meeting" style={tourDetailStyle}>📍 <strong>Meeting Point:</strong> {tour.meetingPoint}</p>
-							<p className="mt-tour-type" style={tourDetailStyle}>🎯 <strong>Type:</strong> {tour.tourType}</p>
-							<p className="mt-tour-status" style={{
-								...tourDetailStyle,
-								color: tour.isActive ? colors.successGreen : colors.dangerRed,
-								fontWeight: '600'
-							}}>
-								{tour.isActive ? '✅ Active' : '❌ Inactive'}
-							</p>
 							
-							<div className="mt-tour-actions" style={actionButtonsStyle}>
-								<button 
-									className="mt-edit-btn"
-									onClick={() => handleEdit(tour)}
-									style={getActionButtonStyle('edit')}
-									onMouseEnter={(e) => {
-										e.target.style.transform = 'translateY(-2px)';
-										e.target.style.boxShadow = '0 4px 8px rgba(0, 123, 255, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.transform = 'translateY(0)';
-										e.target.style.boxShadow = '0 2px 4px rgba(0, 123, 255, 0.3)';
-									}}
-								>
-									✏️ Edit
-								</button>
-								<button 
-									className="mt-toggle-btn"
-									onClick={() => toggleStatus(tour._id, tour.isActive)}
-									style={getActionButtonStyle('toggle')}
-									onMouseEnter={(e) => {
-										e.target.style.transform = 'translateY(-2px)';
-										e.target.style.boxShadow = '0 4px 8px rgba(253, 126, 20, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.transform = 'translateY(0)';
-										e.target.style.boxShadow = '0 2px 4px rgba(253, 126, 20, 0.3)';
-									}}
-								>
+							<div className="tour-actions">
+								<button onClick={() => handleEdit(tour)} className="action-btn edit">✏️ Edit</button>
+								<button onClick={() => toggleStatus(tour._id, tour.isActive)} className="action-btn toggle">
 									{tour.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
 								</button>
-								<button 
-									className="mt-delete-btn"
-									onClick={() => handleDelete(tour._id)}
-									style={getActionButtonStyle('delete')}
-									onMouseEnter={(e) => {
-										e.target.style.transform = 'translateY(-2px)';
-										e.target.style.boxShadow = '0 4px 8px rgba(220, 53, 69, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.transform = 'translateY(0)';
-										e.target.style.boxShadow = '0 2px 4px rgba(220, 53, 69, 0.3)';
-									}}
-								>
-									🗑️ Delete
-								</button>
+								<button onClick={() => handleDelete(tour._id)} className="action-btn delete">🗑️ Delete</button>
 							</div>
 						</div>
 					))}
 				</div>
 
 				{getFilteredTours().length === 0 && (
-					<div style={{
-						...loadingStyle,
-						color: colors.primaryBlue
-					}}>
+					<div className="empty-state">
 						📅 No tours found for the selected filter.
 					</div>
 				)}
 			</div>
+			<style>{tourStyles}</style>
 		</div>
 	);
 };
+
+const tourStyles = `
+.tours-wrapper { padding: 2rem; background: #f9fafe; min-height: 100vh; font-family: "Segoe UI", sans-serif; }
+.tours-container { max-width: 1200px; margin: 0 auto; }
+.loading-container { display: flex; justify-content: center; align-items: center; height: 400px; font-size: 1.2rem; color: #666; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.tours-header { font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; color: #2d2d2d; text-align: center; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.create-btn { padding: 1rem 2rem; border: none; border-radius: 12px; cursor: pointer; margin-bottom: 2rem; font-size: 1.1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+.create-btn.create { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; }
+.create-btn.cancel { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; }
+.create-btn:hover { transform: translateY(-3px); }
+.filters { margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+.filter-btn { padding: 0.75rem 1.5rem; border: 2px solid #007bff; border-radius: 25px; background: white; color: #007bff; cursor: pointer; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease; }
+.filter-btn.active { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+.filter-btn:hover { transform: translateY(-2px); }
+.tour-form { background: white; padding: 2.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #ddd; box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; }
+.form-header { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); border-radius: 12px 12px 0 0; }
+.form-input, .form-textarea { display: block; width: 100%; margin: 1rem 0; padding: 1rem 1.25rem; border: 2px solid #e1e5e9; border-radius: 10px; font-size: 1rem; font-family: inherit; transition: all 0.3s ease; background: #fafbfc; box-sizing: border-box; }
+.form-input:focus, .form-textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.15); background: white; transform: translateY(-2px); }
+.form-textarea { resize: vertical; min-height: 100px; }
+.form-label { display: block; font-weight: 700; color: #2d2d2d; margin-bottom: 0.5rem; font-size: 1rem; }
+.time-slot { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 8px; border: 1px solid rgba(0, 123, 255, 0.2); }
+.time-input { width: 150px; margin: 0; }
+.time-display { font-weight: 600; color: #2d2d2d; }
+.remove-btn { padding: 0.5rem 1rem; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.add-slot-btn { margin: 1rem 0; padding: 0.75rem 1.25rem; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+.submit-btn { padding: 1.25rem 2rem; background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; border: none; border-radius: 12px; cursor: pointer; margin-top: 1.5rem; font-size: 1.1rem; font-weight: 700; width: 100%; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); transition: all 0.3s ease; }
+.submit-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4); }
+.submit-btn:disabled { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); cursor: not-allowed; opacity: 0.7; }
+.tours-list { display: flex; flex-direction: column; gap: 2rem; }
+.tour-card { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.tour-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.tour-card h3 { font-size: 1.4rem; font-weight: 700; color: #2d2d2d; margin-bottom: 1rem; }
+.tour-card p { margin: 0.5rem 0; color: #666; font-size: 0.95rem; line-height: 1.5; }
+.tour-details { margin: 1rem 0; font-size: 0.95rem; line-height: 1.5; }
+.tour-details div { margin: 0.5rem 0; color: #666; }
+.tour-details ul { margin: 0.5rem 0; padding-left: 1.5rem; }
+.tour-details li { margin: 0.25rem 0; }
+.status.active { color: #28a745; font-weight: 600; }
+.status.inactive { color: #dc3545; font-weight: 600; }
+.tour-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+.action-btn { padding: 0.75rem 1.25rem; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+.action-btn.edit { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3); }
+.action-btn.toggle { background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%); box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3); }
+.action-btn.delete { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3); }
+.action-btn:hover { transform: translateY(-2px); }
+.empty-state { padding: 4rem 2rem; text-align: center; font-size: 1.2rem; color: #007bff; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+@media (max-width: 768px) {
+  .filters { flex-direction: column; }
+  .time-slot { flex-direction: column; align-items: stretch; }
+  .time-input { width: 100%; }
+  .tour-actions { flex-direction: column; }
+}
+`;
 
 export default ManageTours;

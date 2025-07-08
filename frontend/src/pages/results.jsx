@@ -250,9 +250,13 @@ function Results() {
                   <label className="sr-label">School Type</label>
                   <select value={schoolType} onChange={(e) => setSchoolType(e.target.value)} className="sr-input">
                     <option value="">All Types</option>
-                    <option value="High School">High School</option>
-                    <option value="TVET">TVET</option>
-                    <option value="University">University</option>
+                  <option value="High School">High School</option>
+                  <option value="TVET">TVET</option>
+                  <option value="University">University</option>
+                  <option value="Primary">Primary</option>
+                  <option value="Kindergarten">Kindergarten</option>  
+                  <option value="College">College</option>
+                  <option value="Driving School">Driving School</option>
                   </select>
                 </div>
 

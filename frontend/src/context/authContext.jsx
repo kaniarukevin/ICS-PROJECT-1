@@ -4,14 +4,14 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false); // ✅ track loading
+  const [isLoaded, setIsLoaded] = useState(false); 
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    setIsLoaded(true); // ✅ mark context as loaded
+    setIsLoaded(true); 
   }, []);
 
   const login = (userData) => {

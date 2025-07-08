@@ -260,11 +260,16 @@ const deleteTour = async (req, res) => {
 // Bookings Management
 const getBookings = async (req, res) => {
 	try {
+		// Find school by admin ID
 		const school = await School.findOne({ adminId: req.user.id });
 		if (!school) {
+			console.log('❌ School not found for admin ID:', req.user.id);
 			return res.status(404).json({ message: 'School not found' });
 		}
 
+		console.log('✅ Found school:', school.name, 'ID:', school._id);
+
+		// Build query with filters
 		const { status, tourId } = req.query;
 		let query = { schoolId: school._id };
 
@@ -275,16 +280,49 @@ const getBookings = async (req, res) => {
 			query.tourId = tourId;
 		}
 
+		console.log('🔍 Booking query:', query);
+
+		// Fetch bookings with populated data
 		const bookings = await Booking.find(query)
-			.populate('tourId', 'title date startTime endTime')
-			.populate('parentId', 'name email phone')
+			.populate({
+				path: 'tourId',
+				select: 'title date startTime endTime timeSlots maxCapacity meetingPoint description',
+				model: 'tours'
+			})
+			.populate({
+				path: 'parentId',
+				select: 'name email phone role children address preferences createdAt lastLogin isActive',
+				model: 'users'
+			})
+			.populate({
+				path: 'schoolId',
+				select: 'name type',
+				model: 'schools'
+			})
 			.sort({ createdAt: -1 });
+
+		console.log(`📊 Found ${bookings.length} bookings`);
+
+		// Debug: Check if parent data is populated
+		if (bookings.length > 0) {
+			const sampleBooking = bookings[0];
+			console.log('🔍 Sample booking debug info:');
+			console.log('- Booking ID:', sampleBooking._id);
+			console.log('- Parent populated?', !!sampleBooking.parentId?.name);
+			console.log('- Parent name:', sampleBooking.parentId?.name || 'NOT POPULATED');
+			console.log('- Parent email:', sampleBooking.parentId?.email || 'NOT POPULATED');
+			console.log('- Tour populated?', !!sampleBooking.tourId?.title);
+		}
 
 		res.json(bookings);
 
 	} catch (error) {
 		console.error('❌ Get bookings error:', error);
-		res.status(500).json({ message: 'Error fetching bookings', error: error.message });
+		res.status(500).json({ 
+			message: 'Error fetching bookings', 
+			error: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+		});
 	}
 };
 

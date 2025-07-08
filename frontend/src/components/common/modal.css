@@ -61,7 +61,7 @@
 }
 
 .modal-btn-info {
-  background-color: #3498db;
+  background-color: #16a34a;
   color: white;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .modal-btn-confirm {
-  background-color: #3498db;
+  background-color: #16a34a;
   color: white;
 }
 
@@ -97,7 +97,7 @@
 
 /* Modal type specific styles */
 .modal-info .modal-header h3 {
-  color: #3498db;
+  color: #16a34a;
 }
 
 .modal-success .modal-header h3 {

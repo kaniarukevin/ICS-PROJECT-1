@@ -118,13 +118,14 @@
 
 .sr-btn-outline {
   border: 2px solid var(--primary-green);
-  background: #fff;
-  color: var(--primary-green);
+  background: var(--primary-green);
+  color: #fff;
 }
 
 .sr-btn-outline:hover {
-  background: var(--primary-green);
   color: #fff;
+  background: #45a049;
+  transform: translateY(-2px);
 }
 
 .sr-btn-link {

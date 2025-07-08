@@ -265,6 +265,25 @@
   text-decoration: underline;
 }
 
+.lg-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lg-toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #1e7e34;
+  cursor: pointer;
+}
+
+
 /* REGISTRATION CARD */
 .lg-register-card {
   background: var(--white);
