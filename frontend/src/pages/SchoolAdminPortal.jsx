@@ -5,6 +5,7 @@ import ManageTours from '../components/schooladmin/ManageTours';
 import ViewBookings from '../components/schooladmin/ViewBookings';
 import SchoolProfile from '../components/schooladmin/SchoolProfile';
 import Messages from '../components/schooladmin/Messages';
+import ReportGenerator from '../components/schooladmin/ReportGenerator';
 
 const SchoolAdminPortal = () => {
 	const [activeTab, setActiveTab] = useState('dashboard');
