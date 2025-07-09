@@ -1,10 +1,8 @@
-//backend/index.js
-
+// backend/index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-
 
 const app = express();
 
@@ -55,7 +53,8 @@ const authRoutes = require('./routes/authRoutes');
 const schoolAdminRoutes = require('./routes/schoolAdmin');
 const systemAdminRoutes = require('./routes/systemAdmin');
 const schoolAdminRegistrationRoutes = require('./routes/schoolAdminRegistration'); 
-const parentRoutes = require('./routes/parents'); 
+const parentRoutes = require('./routes/parents');
+const messageRoutes = require('./routes/messages'); // NEW: Message routes
 
 // Use routes with logging
 console.log('🛣️ Setting up routes...');
@@ -69,11 +68,14 @@ console.log('✅ School admin routes mounted at /api/school-admin');
 app.use('/api/system-admin', systemAdminRoutes);
 console.log('✅ System admin routes mounted at /api/system-admin');
 
-app.use('/api/school-admin-registration', schoolAdminRegistrationRoutes); // 
+app.use('/api/school-admin-registration', schoolAdminRegistrationRoutes);
 console.log('✅ School admin registration routes mounted at /api/school-admin-registration');
 
 app.use('/api/parents', parentRoutes);
 console.log('✅ Parent routes mounted at /api/parents');
+
+app.use('/api/messages', messageRoutes); // NEW: Message routes
+console.log('✅ Message routes mounted at /api/messages');
 
 // Enhanced debug route
 app.get('/debug/collections', async (req, res) => {
@@ -204,6 +206,24 @@ app.get('/debug/parent', (req, res) => {
 	});
 });
 
+// Test message routes
+app.get('/debug/messages', (req, res) => {
+	res.json({
+		message: 'Message routes are available',
+		routes: [
+			'/api/messages/conversations',
+			'/api/messages/conversations/:conversationId/messages',
+			'/api/messages/send',
+			'/api/messages/conversations/start',
+			'/api/messages/conversations/:conversationId/read',
+			'/api/messages/unread-count',
+			'/api/messages/conversations/:conversationId/archive',
+			'/api/messages/contact-school',
+			'/api/messages/health'
+		],
+		note: 'All message routes require authentication'
+	});
+});
 
 // Basic route
 app.get('/', (req, res) => {
@@ -216,10 +236,14 @@ app.get('/', (req, res) => {
 			auth: '/api/auth',
 			schoolAdmin: '/api/school-admin',
 			systemAdmin: '/api/system-admin',
-			schoolAdminRegistration: '/api/school-admin-registration', // ✅ NEW
+			schoolAdminRegistration: '/api/school-admin-registration',
+			parents: '/api/parents',
+			messages: '/api/messages', // NEW: Message endpoints
 			debug: '/debug/collections',
 			testSchools: '/debug/schools',
-			testSystemAdmin: '/debug/system-admin'
+			testSystemAdmin: '/debug/system-admin',
+			testParent: '/debug/parent',
+			testMessages: '/debug/messages' // NEW: Message debug endpoint
 		}
 	});
 });
@@ -262,6 +286,7 @@ app.listen(PORT, () => {
 	console.log(`🏫 Test Schools: http://localhost:${PORT}/debug/schools`);
 	console.log(`🔐 Test System Admin: http://localhost:${PORT}/debug/system-admin`);
 	console.log(`👥 Test Parent: http://localhost:${PORT}/debug/parent`);
+	console.log(`💬 Test Messages: http://localhost:${PORT}/debug/messages`); // NEW
 	console.log('');
 	console.log('📋 Available API endpoints:');
 	console.log('  🔐 /api/auth/login');
@@ -272,10 +297,13 @@ app.listen(PORT, () => {
 	console.log('  📈 /api/system-admin/reports');
 	console.log('  🏫 /api/school-admin-registration/register'); 
 	console.log('  👥 /api/parents/profile');
-	console.log('  📅 /api/parents/tours')
+	console.log('  📅 /api/parents/tours');
 	console.log('  🧾 /api/parents/bookings');
 	console.log('  🏫 /api/parents/schools');
 	console.log('  🏫 /api/parents/schools/:schoolId/rate');
+	console.log('  💬 /api/messages/conversations'); // NEW
+	console.log('  💬 /api/messages/send'); // NEW
+	console.log('  💬 /api/messages/unread-count'); // NEW
 	
 	console.log('');
 });

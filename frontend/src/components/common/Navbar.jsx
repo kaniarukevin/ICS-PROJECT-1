@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// frontend/src/components/common/Navbar.jsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../common/Modal';
 
@@ -6,8 +7,34 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const user = JSON.parse(localStorage.getItem('user'));
   const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    if (token && user) {
+      fetchUnreadCount();
+      // Set up interval to check for new messages every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token, user]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/messages/unread-count', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.unreadCount);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
 
   const handleLogout = () => {
     setShowLogoutModal(true);
@@ -43,6 +70,11 @@ const Navbar = () => {
 
   const goToMyComparisons = () => {
     navigate('/compare');
+    setIsMenuOpen(false);
+  };
+
+  const goToMessages = () => {
+    navigate('/messages');
     setIsMenuOpen(false);
   };
 
@@ -98,12 +130,32 @@ const Navbar = () => {
     borderRadius: '6px',
     transition: 'all 0.3s ease',
     textDecoration: 'none',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
   };
 
   const navLinkHoverStyle = {
     background: '#16a34a',
     color: '#ffffff',
     transform: 'translateY(-1px)',
+  };
+
+  const messagesBadgeStyle = {
+    position: 'absolute',
+    top: '-2px',
+    right: '-2px',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    borderRadius: '50%',
+    width: '18px',
+    height: '18px',
+    fontSize: '0.7rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold'
   };
 
   const actionsStyle = {
@@ -192,6 +244,7 @@ const Navbar = () => {
     transition: 'all 0.3s ease',
     textAlign: 'left',
     borderBottom: '1px solid #d1d5db',
+    position: 'relative'
   };
 
   const mobileUserSectionStyle = {
@@ -289,6 +342,19 @@ const Navbar = () => {
                     >
                       My Comparisons
                     </button>
+                    <button 
+                      style={hoveredLink === 'messages' ? { ...navLinkStyle, ...navLinkHoverStyle } : navLinkStyle}
+                      onClick={goToMessages}
+                      onMouseEnter={() => setHoveredLink('messages')}
+                      onMouseLeave={() => setHoveredLink(null)}
+                    >
+                      💬 Messages
+                      {unreadCount > 0 && (
+                        <span style={messagesBadgeStyle}>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
                   </>
                 )}
               </>
@@ -369,6 +435,32 @@ const Navbar = () => {
                     onMouseLeave={(e) => { e.target.style.background = 'none'; e.target.style.color = '#1f2937'; }}
                   >
                     My Comparisons
+                  </button>
+                  <button 
+                    style={mobileNavLinkStyle}
+                    onClick={goToMessages}
+                    onMouseEnter={(e) => { e.target.style.background = '#16a34a'; e.target.style.color = '#ffffff'; }}
+                    onMouseLeave={(e) => { e.target.style.background = 'none'; e.target.style.color = '#1f2937'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>💬 Messages</span>
+                      {unreadCount > 0 && (
+                        <span style={{
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          fontSize: '0.7rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold'
+                        }}>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 </>
               )}
