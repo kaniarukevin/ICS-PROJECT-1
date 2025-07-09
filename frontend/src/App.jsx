@@ -1,3 +1,4 @@
+// frontend\src\App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ import Navbar from './components/common/Navbar';
 import Results from './pages/results';
 import MyBookings from './pages/MyBookings';
 import CompareSchools from './pages/CompareSchools';
+import Messages from './components/parents/Messages'; // Parent messages
 
 function App() {
 	return (
@@ -32,13 +34,10 @@ function App() {
 					<Route path="/register/parent" element={<RegisterParent />} />
 					<Route path="/register/school-admin" element={<RegisterSchoolAdmin />} />
 
-					 <Route path="/school/:id" element={<SchoolDetails />} />
-
-					 <Route path='/results' element={<Results />} />
-
+					<Route path="/school/:id" element={<SchoolDetails />} />
+					<Route path='/results' element={<Results />} />
 					<Route path="/my-bookings" element={<MyBookings />} />
 					<Route path="/compare" element={<CompareSchools />} />
-
 
 					{/* School Admin Portal */}
 					<Route path="/school-admin/*" element={
@@ -53,6 +52,16 @@ function App() {
 							<SystemAdminPortal />
 						</ProtectedRoute>
 					} />
+
+					{/* Parent Messages Route */}
+					<Route 
+						path="/messages" 
+						element={
+							<ProtectedRoute requiredRole="parent">
+								<Messages />
+							</ProtectedRoute>
+						} 
+					/>
 
 					{/* Catch-All for 404s */}
 					<Route path="*" element={<NotFound />} />
