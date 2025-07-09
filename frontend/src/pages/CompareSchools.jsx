@@ -278,22 +278,19 @@ function CompareSchools() {
                   } 
                 />
                 
-                <ComparisonRow 
-                  label="Available Facilities" 
-                  icon="🏢"
-                  getValue={school => 
-                    school.facilities?.length ? 
-                    <div className="cs-facilities-list">
-                      {school.facilities.slice(0, 3).map((f, i) => (
-                        <span key={i} className="cs-facility-tag">{f.name}</span>
-                      ))}
-                      {school.facilities.length > 3 && (
-                        <span className="cs-facility-more">+{school.facilities.length - 3} more</span>
-                      )}
-                    </div> : 
-                    <span className="cs-no-data">No facilities listed</span>
-                  } 
-                />
+                <ComparisonRow                    
+  label="Available Facilities"                    
+  icon="🏢"                   
+  getValue={school =>                      
+    school.facilities?.length ?                      
+    <div className="cs-facilities-list">                       
+      {school.facilities.map((f, i) => (                         
+        <span key={i} className="cs-facility-tag">{f.name}</span>                       
+      ))}                     
+    </div> :                      
+    <span className="cs-no-data">No facilities listed</span>                   
+  }                  
+/>
                 
                 <ComparisonRow 
                   label="Contact Phone" 

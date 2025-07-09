@@ -40,17 +40,39 @@ const getToursForSchool = async (req, res) => {
 };
 
 //Get parent’s bookings
+// Get parent’s bookings with completed status update
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ parentId: req.user._id })
-      .populate('tourId', 'title date')
-      .populate('schoolId', 'name location.city')
+      .populate('tourId', 'title date tourType requirements duration maxGroupSize')
+      .populate('schoolId', 'name location.city location.state')
       .sort({ createdAt: -1 });
+
+    const now = new Date();
+    const updates = [];
+
+    // Check and update completed bookings
+    for (let booking of bookings) {
+      const tourDate = new Date(booking.tourId?.date);
+      if (
+        (booking.status === 'confirmed' || booking.status === 'active') &&
+        tourDate < now
+      ) {
+        booking.status = 'completed';
+        updates.push(booking.save());
+      }
+    }
+
+    // Wait for all updates to finish
+    await Promise.all(updates);
+
     res.json(bookings);
   } catch (error) {
+    console.error('Get My Bookings Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 //Book a tour
 const bookTour = async (req, res) => {
@@ -124,6 +146,36 @@ const cancelBooking = async (req, res) => {
     res.json({ message: 'Booking cancelled successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Cancel failed', error: error.message });
+  }
+};
+const deleteBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Find the booking and ensure it belongs to the authenticated parent
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      parentId: req.user._id
+    });
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Check if the booking is cancelled
+    if (booking.status !== 'cancelled') {
+      return res.status(400).json({ 
+        message: 'Only cancelled bookings can be deleted. Please cancel the booking first.' 
+      });
+    }
+
+    // Delete the booking
+    await Booking.findByIdAndDelete(bookingId);
+
+    res.json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    console.error('Delete booking error:', error);
+    res.status(500).json({ message: 'Failed to delete booking', error: error.message });
   }
 };
 
@@ -295,6 +347,7 @@ module.exports = {
   getToursForSchool,
   getMyBookings,
   bookTour,
+  deleteBooking,
   cancelBooking,
   getAllSchools,
   getAllLocations, // 

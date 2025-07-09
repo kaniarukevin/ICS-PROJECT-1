@@ -1,4 +1,4 @@
-// frontend/src/components/auth/SchoolAdminRegistration.jsx (Updated with School Type Checklist)
+// frontend/src/components/auth/SchoolAdminRegistration.jsx (Enhanced with Phone Prefix and Password Toggle)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,8 @@ const SchoolAdminRegistration = () => {
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState({});
 	const [validationStatus, setValidationStatus] = useState({});
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	
 	const [formData, setFormData] = useState({
 		// Personal Information
@@ -19,7 +21,7 @@ const SchoolAdminRegistration = () => {
 		
 		// School Information
 		schoolName: '',
-		schoolType: [], // CHANGED: Now an array instead of string
+		schoolType: [], // Array for multiple school types
 		description: '',
 		
 		// Location
@@ -55,6 +57,49 @@ const SchoolAdminRegistration = () => {
 		// Agreement
 		agreeToTerms: false
 	});
+
+	// Format phone number with +254 prefix
+	const formatPhoneNumber = (value) => {
+		// Remove all non-digits
+		const digits = value.replace(/\D/g, '');
+		
+		// If empty, return empty
+		if (!digits) return '';
+		
+		// If starts with 254, add +
+		if (digits.startsWith('254')) {
+			return '+' + digits;
+		}
+		
+		// If starts with 0, replace with +254
+		if (digits.startsWith('0')) {
+			return '+254' + digits.substring(1);
+		}
+		
+		// If it's just digits without prefix, add +254
+		if (digits.length > 0 && !digits.startsWith('254')) {
+			return '+254' + digits;
+		}
+		
+		return '+' + digits;
+	};
+
+	// Handle phone number changes
+	const handlePhoneChange = (e, fieldName) => {
+		const formattedPhone = formatPhoneNumber(e.target.value);
+		setFormData(prev => ({
+			...prev,
+			[fieldName]: formattedPhone
+		}));
+		
+		// Clear errors when user starts typing
+		if (errors[fieldName]) {
+			setErrors(prev => ({
+				...prev,
+				[fieldName]: ''
+			}));
+		}
+	};
 
 	const schoolTypes = [
 		{ 
@@ -102,55 +147,54 @@ const SchoolAdminRegistration = () => {
 	];
 
 	const kenyanStates = [
-  'Mombasa',
-  'Kwale',
-  'Kilifi',
-  'Tana River',
-  'Lamu',
-  'Taita Taveta',
-  'Garissa',
-  'Wajir',
-  'Mandera',
-  'Marsabit',
-  'Isiolo',
-  'Meru',
-  'Tharaka-Nithi',
-  'Embu',
-  'Kitui',
-  'Machakos',
-  'Makueni',
-  'Nyandarua',
-  'Nyeri',
-  'Kirinyaga',
-  'Murang\'a',
-  'Kiambu',
-  'Turkana',
-  'West Pokot',
-  'Samburu',
-  'Trans Nzoia',
-  'Uasin Gishu',
-  'Elgeyo-Marakwet',
-  'Nandi',
-  'Baringo',
-  'Laikipia',
-  'Nakuru',
-  'Narok',
-  'Kajiado',
-  'Kericho',
-  'Bomet',
-  'Kakamega',
-  'Vihiga',
-  'Bungoma',
-  'Busia',
-  'Siaya',
-  'Kisumu',
-  'Homa Bay',
-  'Migori',
-  'Kisii',
-  'Nyamira',
-  'Nairobi'
-];
-
+		'Mombasa',
+		'Kwale',
+		'Kilifi',
+		'Tana River',
+		'Lamu',
+		'Taita Taveta',
+		'Garissa',
+		'Wajir',
+		'Mandera',
+		'Marsabit',
+		'Isiolo',
+		'Meru',
+		'Tharaka-Nithi',
+		'Embu',
+		'Kitui',
+		'Machakos',
+		'Makueni',
+		'Nyandarua',
+		'Nyeri',
+		'Kirinyaga',
+		'Murang\'a',
+		'Kiambu',
+		'Turkana',
+		'West Pokot',
+		'Samburu',
+		'Trans Nzoia',
+		'Uasin Gishu',
+		'Elgeyo-Marakwet',
+		'Nandi',
+		'Baringo',
+		'Laikipia',
+		'Nakuru',
+		'Narok',
+		'Kajiado',
+		'Kericho',
+		'Bomet',
+		'Kakamega',
+		'Vihiga',
+		'Bungoma',
+		'Busia',
+		'Siaya',
+		'Kisumu',
+		'Homa Bay',
+		'Migori',
+		'Kisii',
+		'Nyamira',
+		'Nairobi'
+	];
 
 	const feePeriods = [
 		'Termly',
@@ -168,6 +212,12 @@ const SchoolAdminRegistration = () => {
 	// Handle input changes
 	const handleChange = (e) => {
 		const { name, value, type, checked } = e.target;
+		
+		// Handle phone number fields with special formatting
+		if (name === 'phone' || name === 'schoolPhone') {
+			handlePhoneChange(e, name);
+			return;
+		}
 		
 		if (name.includes('.')) {
 			// Handle nested objects like grades.from, fees.currency, fees.tuition.minAmount
@@ -195,7 +245,7 @@ const SchoolAdminRegistration = () => {
 				}));
 			}
 		} else if (name === 'schoolType') {
-			// UPDATED: Handle school type as array
+			// Handle school type as array
 			const updatedSchoolTypes = checked 
 				? [...formData.schoolType, value]
 				: formData.schoolType.filter(type => type !== value);
@@ -290,7 +340,6 @@ const SchoolAdminRegistration = () => {
 		
 		if (step === 2) {
 			if (!formData.schoolName.trim()) newErrors.schoolName = 'School name is required';
-			// UPDATED: Validate school type array
 			if (!formData.schoolType || formData.schoolType.length === 0) {
 				newErrors.schoolType = 'Please select at least one school type';
 			}
@@ -397,7 +446,7 @@ const SchoolAdminRegistration = () => {
 		return formatter.format(amount);
 	};
 
-	// UPDATED: School Type Checklist Component
+	// School Type Checklist Component
 	const renderSchoolTypeChecklist = () => {
 		return (
 			<div className="form-group full-width">
@@ -517,29 +566,49 @@ const SchoolAdminRegistration = () => {
 
 							<div className="form-group">
 								<label htmlFor="password">Password *</label>
-								<input
-									type="password"
-									id="password"
-									name="password"
-									value={formData.password}
-									onChange={handleChange}
-									placeholder="Create a strong password"
-									required
-								/>
+								<div className="password-input-container">
+									<input
+										type={showPassword ? "text" : "password"}
+										id="password"
+										name="password"
+										value={formData.password}
+										onChange={handleChange}
+										placeholder="Create a strong password"
+										required
+									/>
+									<button
+										type="button"
+										className="password-toggle"
+										onClick={() => setShowPassword(!showPassword)}
+										title={showPassword ? "Hide password" : "Show password"}
+									>
+										{showPassword ? "🙈" : "👁️"}
+									</button>
+								</div>
 								{errors.password && <span className="error">{errors.password}</span>}
 							</div>
 
 							<div className="form-group">
 								<label htmlFor="confirmPassword">Confirm Password *</label>
-								<input
-									type="password"
-									id="confirmPassword"
-									name="confirmPassword"
-									value={formData.confirmPassword}
-									onChange={handleChange}
-									placeholder="Confirm your password"
-									required
-								/>
+								<div className="password-input-container">
+									<input
+										type={showConfirmPassword ? "text" : "password"}
+										id="confirmPassword"
+										name="confirmPassword"
+										value={formData.confirmPassword}
+										onChange={handleChange}
+										placeholder="Confirm your password"
+										required
+									/>
+									<button
+										type="button"
+										className="password-toggle"
+										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+										title={showConfirmPassword ? "Hide password" : "Show password"}
+									>
+										{showConfirmPassword ? "🙈" : "👁️"}
+									</button>
+								</div>
 								{errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
 							</div>
 						</div>
@@ -569,7 +638,6 @@ const SchoolAdminRegistration = () => {
 								{errors.schoolName && <span className="error">{errors.schoolName}</span>}
 							</div>
 
-							{/* UPDATED: School Type Checklist */}
 							{renderSchoolTypeChecklist()}
 
 							<div className="form-group full-width">
@@ -660,7 +728,7 @@ const SchoolAdminRegistration = () => {
 									name="schoolPhone"
 									value={formData.schoolPhone}
 									onChange={handleChange}
-									placeholder="School phone number"
+									placeholder="+254 XXX XXX XXX"
 								/>
 							</div>
 
@@ -893,10 +961,16 @@ const SchoolAdminRegistration = () => {
 							<div className="review-group">
 								<h4>School Information</h4>
 								<p><strong>School Name:</strong> {formData.schoolName}</p>
-								{/* UPDATED: Display multiple school types */}
 								<p><strong>School Type(s):</strong> {formData.schoolType.length > 0 ? formData.schoolType.join(', ') : 'Not selected'}</p>
 								<p><strong>Location:</strong> {formData.city}, {formData.state}</p>
 								<p><strong>Description:</strong> {formData.description || 'Not provided'}</p>
+							</div>
+
+							<div className="review-group">
+								<h4>Contact Information</h4>
+								<p><strong>School Phone:</strong> {formData.schoolPhone || 'Not provided'}</p>
+								<p><strong>School Email:</strong> {formData.schoolEmail || 'Not provided'}</p>
+								<p><strong>Website:</strong> {formData.website || 'Not provided'}</p>
 							</div>
 
 							<div className="review-group">
@@ -1130,7 +1204,7 @@ const SchoolAdminRegistration = () => {
 					margin: 0.5rem 0 1rem 0;
 				}
 
-				/* UPDATED: School Type Checklist Styles */
+				/* School Type Checklist Styles */
 				.school-type-checklist {
 					display: grid;
 					grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1270,6 +1344,45 @@ const SchoolAdminRegistration = () => {
 				.form-group textarea:focus {
 					outline: none;
 					border-color: #007bff;
+					box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+				}
+
+				/* Password Input Container */
+				.password-input-container {
+					position: relative;
+					display: flex;
+					align-items: center;
+				}
+
+				.password-input-container input {
+					flex: 1;
+					padding-right: 3rem;
+				}
+
+				.password-toggle {
+					position: absolute;
+					right: 0.75rem;
+					background: none;
+					border: none;
+					cursor: pointer;
+					font-size: 1.2rem;
+					padding: 0.25rem;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: #666;
+					transition: color 0.3s, transform 0.2s;
+					border-radius: 4px;
+				}
+
+				.password-toggle:hover {
+					color: #007bff;
+					background: rgba(0, 123, 255, 0.1);
+					transform: scale(1.1);
+				}
+
+				.password-toggle:active {
+					transform: scale(0.95);
 				}
 
 				.checkbox-grid {
@@ -1284,12 +1397,26 @@ const SchoolAdminRegistration = () => {
 					align-items: center;
 					gap: 0.5rem;
 					cursor: pointer;
+					padding: 0.25rem;
+					border-radius: 4px;
+					transition: background-color 0.2s;
+				}
+
+				.checkbox-label:hover {
+					background: rgba(0, 123, 255, 0.1);
 				}
 
 				.error {
 					color: #dc3545;
 					font-size: 0.9rem;
 					margin-top: 0.25rem;
+					display: flex;
+					align-items: center;
+					gap: 0.25rem;
+				}
+
+				.error::before {
+					content: "⚠️";
 				}
 
 				.success {
@@ -1328,10 +1455,18 @@ const SchoolAdminRegistration = () => {
 					padding: 1.5rem;
 					border-radius: 4px;
 					margin-bottom: 1.5rem;
+					border: 1px solid #e0e0e0;
 				}
 
 				.review-group {
 					margin-bottom: 1.5rem;
+					padding-bottom: 1rem;
+					border-bottom: 1px solid #f0f0f0;
+				}
+
+				.review-group:last-child {
+					border-bottom: none;
+					margin-bottom: 0;
 				}
 
 				.review-group h4 {
@@ -1355,6 +1490,7 @@ const SchoolAdminRegistration = () => {
 					display: flex;
 					justify-content: space-between;
 					margin-top: 2rem;
+					gap: 1rem;
 				}
 
 				.btn-primary,
@@ -1364,7 +1500,8 @@ const SchoolAdminRegistration = () => {
 					border-radius: 4px;
 					font-size: 1rem;
 					cursor: pointer;
-					transition: background-color 0.3s;
+					transition: all 0.3s;
+					font-weight: 500;
 				}
 
 				.btn-primary {
@@ -1374,11 +1511,15 @@ const SchoolAdminRegistration = () => {
 
 				.btn-primary:hover {
 					background: #0056b3;
+					transform: translateY(-1px);
+					box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 				}
 
 				.btn-primary:disabled {
 					background: #ccc;
 					cursor: not-allowed;
+					transform: none;
+					box-shadow: none;
 				}
 
 				.btn-secondary {
@@ -1388,6 +1529,8 @@ const SchoolAdminRegistration = () => {
 
 				.btn-secondary:hover {
 					background: #545b62;
+					transform: translateY(-1px);
+					box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 				}
 
 				.registration-footer {
@@ -1400,6 +1543,7 @@ const SchoolAdminRegistration = () => {
 					color: #007bff;
 					text-decoration: underline;
 					cursor: pointer;
+					font-size: 1rem;
 				}
 
 				.link-button:hover {
@@ -1427,6 +1571,10 @@ const SchoolAdminRegistration = () => {
 					.form-navigation {
 						flex-direction: column;
 						gap: 1rem;
+					}
+
+					.password-toggle {
+						right: 0.5rem;
 					}
 				}
 			`}</style>

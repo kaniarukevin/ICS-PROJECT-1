@@ -11,6 +11,7 @@ const {
 	cancelBooking,
 	getAllSchools,
 	getSchoolById,
+	deleteBooking,
 	getToursForSchool,
 	compareSchools,
 	rateSchool,
@@ -24,6 +25,7 @@ router.delete('/bookings/:bookingId', authMiddleware, requireParent, cancelBooki
 router.post('/schools/:schoolId/rate', authMiddleware, requireParent, rateSchool);
 router.post('/book', authMiddleware, requireParent, bookTour);
 router.get('/compare', authMiddleware, requireParent, compareSchools);
+router.get('/delete/:bookingId', authMiddleware, requireParent, deleteBooking);
 
 // Public routes
 router.get('/schools', getAllSchools);
