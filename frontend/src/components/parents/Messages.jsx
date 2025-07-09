@@ -55,7 +55,7 @@ const Messages = () => {
 
 	const fetchSchools = async () => {
 		try {
-			const response = await fetch('http://localhost:5000/api/parents/schools');
+			const response = await fetch('http://localhost:5000/api/parents/schools/dropdown');
 			if (response.ok) {
 				const data = await response.json();
 				setSchools(data.schools);

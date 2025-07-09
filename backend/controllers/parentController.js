@@ -246,6 +246,14 @@ if (minFee && maxFee) {
     res.status(500).json({ message: 'Failed to fetch schools', error: err.message });
   }
 };
+const getAllSchoolsForDropdown = async (req, res) => {
+  try {
+    const schools = await School.find({ isVerified: true }).select('_id name').sort('name');
+    res.json({ schools });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch school names', error: err.message });
+  }
+};
 
 //Get all distinct city/state for location autocomplete
 const getAllLocations = async (req, res) => {
@@ -353,5 +361,6 @@ module.exports = {
   getAllLocations, // 
   getSchoolById,
   rateSchool,
+  getAllSchoolsForDropdown,
   compareSchools
 };

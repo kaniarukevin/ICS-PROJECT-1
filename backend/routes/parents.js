@@ -13,6 +13,7 @@ const {
 	getSchoolById,
 	deleteBooking,
 	getToursForSchool,
+	getAllSchoolsForDropdown,
 	compareSchools,
 	rateSchool,
 	getAllLocations
@@ -29,6 +30,7 @@ router.get('/delete/:bookingId', authMiddleware, requireParent, deleteBooking);
 
 // Public routes
 router.get('/schools', getAllSchools);
+router.get('/schools/dropdown', getAllSchoolsForDropdown);
 router.get('/schools/:schoolId', getSchoolById);
 router.get('/tours', getToursForSchool);
 router.get('/locations', getAllLocations); 
