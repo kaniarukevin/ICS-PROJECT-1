@@ -2,8 +2,31 @@ const User = require('../models/user');
 const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
 const School = require('../models/School');
+const nodemailer = require('nodemailer');
 
-//Get parent profile
+// Reusable mail sender
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'yourgmail@gmail.com', // your gmail
+    pass: 'your-app-password',   // app password from Gmail
+  },
+});
+
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: '"School Tours" <yourgmail@gmail.com>',
+      to,
+      subject,
+      text,
+    });
+  } catch (err) {
+    console.error('Email error:', err.message);
+  }
+};
+
+// Get parent profile
 const getParentProfile = async (req, res) => {
   try {
     const parent = await User.findById(req.user._id).select('-password');
@@ -14,7 +37,7 @@ const getParentProfile = async (req, res) => {
   }
 };
 
-//Get all available tours
+// Get all available tours
 const getAllTours = async (req, res) => {
   try {
     const tours = await Tour.find()
@@ -26,7 +49,7 @@ const getAllTours = async (req, res) => {
   }
 };
 
-//Get all tours for a specific school
+// Get all tours for a specific school
 const getToursForSchool = async (req, res) => {
   try {
     const { schoolId } = req.query;
@@ -39,8 +62,7 @@ const getToursForSchool = async (req, res) => {
   }
 };
 
-//Get parent’s bookings
-// Get parent’s bookings with completed status update
+// Get parent bookings
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ parentId: req.user._id })
@@ -51,7 +73,6 @@ const getMyBookings = async (req, res) => {
     const now = new Date();
     const updates = [];
 
-    // Check and update completed bookings
     for (let booking of bookings) {
       const tourDate = new Date(booking.tourId?.date);
       if (
@@ -63,9 +84,7 @@ const getMyBookings = async (req, res) => {
       }
     }
 
-    // Wait for all updates to finish
     await Promise.all(updates);
-
     res.json(bookings);
   } catch (error) {
     console.error('Get My Bookings Error:', error);
@@ -73,16 +92,15 @@ const getMyBookings = async (req, res) => {
   }
 };
 
-
-//Book a tour
+// Book a tour
 const bookTour = async (req, res) => {
   try {
     const { tourId, schoolId, numberOfGuests = 1, selectedTimeSlot } = req.body;
     if (!req.user || !req.user._id) {
-      return res.status(401).json({ message: 'Unauthorized: No user found' });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
     if (!tourId || !schoolId || !selectedTimeSlot) {
-      return res.status(400).json({ message: 'Missing required fields: tourId, schoolId, selectedTimeSlot' });
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const tour = await Tour.findById(tourId);
@@ -104,13 +122,31 @@ const bookTour = async (req, res) => {
       parentId: req.user._id,
       numberOfGuests,
       selectedTimeSlot,
-      status: 'pending'
+      status: 'pending',
     });
 
     await booking.save();
 
     tour.currentBookings = (tour.currentBookings || 0) + numberOfGuests;
     await tour.save();
+
+    const school = await School.findById(schoolId).populate('adminId');
+    const parent = await User.findById(req.user._id);
+
+    // Send email notifications
+    if (school?.adminId?.email) {
+      await sendEmail(
+        school.adminId.email,
+        `New Tour Booking Request for ${school.name}`,
+        `A new tour booking request has been made by ${parent.name} (${parent.email}).`
+      );
+    }
+
+    await sendEmail(
+      parent.email,
+      `Tour Booking Request Sent to ${school?.name}`,
+      `You have successfully booked a tour at ${school?.name}. Your request is pending approval.`
+    );
 
     res.status(201).json({ message: 'Booking request sent and awaiting approval', booking });
   } catch (error) {
@@ -119,14 +155,14 @@ const bookTour = async (req, res) => {
   }
 };
 
-//Cancel booking
+// Cancel booking
 const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
     const booking = await Booking.findOne({
       _id: bookingId,
-      parentId: req.user._id
+      parentId: req.user._id,
     }).populate('tourId');
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
@@ -136,42 +172,48 @@ const cancelBooking = async (req, res) => {
 
     const diffInDays = (tourDate - now) / (1000 * 60 * 60 * 24);
     if (diffInDays < 2) {
-      return res.status(400).json({ message: 'Cancellations must be done at least 2 days before the tour' });
+      return res.status(400).json({
+        message: 'Cancellations must be done at least 2 days before the tour',
+      });
     }
 
     booking.status = 'cancelled';
     booking.cancelledAt = now;
     await booking.save();
 
+    const school = await School.findById(booking.schoolId).populate('adminId');
+    if (school?.adminId?.email) {
+      await sendEmail(
+        school.adminId.email,
+        `Tour Booking Cancelled at ${school.name}`,
+        `A booking for tour '${booking.tourId.title}' by a parent has been cancelled.`
+      );
+    }
+
     res.json({ message: 'Booking cancelled successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Cancel failed', error: error.message });
   }
 };
+
+// Delete cancelled booking
 const deleteBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    // Find the booking and ensure it belongs to the authenticated parent
     const booking = await Booking.findOne({
       _id: bookingId,
-      parentId: req.user._id
+      parentId: req.user._id,
     });
 
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-
-    // Check if the booking is cancelled
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
     if (booking.status !== 'cancelled') {
-      return res.status(400).json({ 
-        message: 'Only cancelled bookings can be deleted. Please cancel the booking first.' 
+      return res.status(400).json({
+        message: 'Only cancelled bookings can be deleted.',
       });
     }
 
-    // Delete the booking
     await Booking.findByIdAndDelete(bookingId);
-
     res.json({ message: 'Booking deleted successfully' });
   } catch (error) {
     console.error('Delete booking error:', error);
@@ -179,7 +221,7 @@ const deleteBooking = async (req, res) => {
   }
 };
 
-//Get all verified schools (with filters)
+// Get all verified schools (with filters)
 const getAllSchools = async (req, res) => {
   try {
     const {
@@ -205,22 +247,11 @@ const getAllSchools = async (req, res) => {
     if (location) {
       filter.$or = [
         { 'location.city': { $regex: location, $options: 'i' } },
-        { 'location.state': { $regex: location, $options: 'i' } }
+        { 'location.state': { $regex: location, $options: 'i' } },
       ];
     }
-
-    // // Fee filtering (strict bounding logic)
-if (minFee && maxFee) {
-  filter['fees.tuition.minAmount'] = { $gte: parseFloat(minFee) };
-  filter['fees.tuition.maxAmount'] = { $lte: parseFloat(maxFee) };
-} else if (minFee) {
-  filter['fees.tuition.minAmount'] = { $gte: parseFloat(minFee) };
-} else if (maxFee) {
-  filter['fees.tuition.maxAmount'] = { $lte: parseFloat(maxFee) };
-}
-
-
-
+    if (minFee) filter['fees.tuition.minAmount'] = { $gte: parseFloat(minFee) };
+    if (maxFee) filter['fees.tuition.maxAmount'] = { $lte: parseFloat(maxFee) };
     if (overallRating) filter['ratings.overall'] = { $gte: parseFloat(overallRating) };
     if (academicRating) filter['ratings.academic'] = { $gte: parseFloat(academicRating) };
     if (facilitiesRating) filter['ratings.facilities'] = { $gte: parseFloat(facilitiesRating) };
@@ -246,6 +277,7 @@ if (minFee && maxFee) {
     res.status(500).json({ message: 'Failed to fetch schools', error: err.message });
   }
 };
+
 const getAllSchoolsForDropdown = async (req, res) => {
   try {
     const schools = await School.find({ isVerified: true }).select('_id name').sort('name');
@@ -255,7 +287,6 @@ const getAllSchoolsForDropdown = async (req, res) => {
   }
 };
 
-//Get all distinct city/state for location autocomplete
 const getAllLocations = async (req, res) => {
   try {
     const schools = await School.find({}, 'location.city location.state');
@@ -272,20 +303,17 @@ const getAllLocations = async (req, res) => {
   }
 };
 
-//Get school by ID
 const getSchoolById = async (req, res) => {
   try {
     const { schoolId } = req.params;
     const school = await School.findById(schoolId).select('-adminId -__v');
     if (!school) return res.status(404).json({ message: 'School not found' });
-
     res.json(school);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch school details', error: error.message });
   }
 };
 
-//Parent rates a school
 const rateSchool = async (req, res) => {
   try {
     const { schoolId } = req.params;
@@ -304,19 +332,18 @@ const rateSchool = async (req, res) => {
       facilities,
       teachers,
       environment,
-      comment
+      comment,
     });
 
     const total = school.ratingsList.length;
-    const avg = field =>
-      school.ratingsList.reduce((sum, rating) => sum + (rating[field] || 0), 0) / total;
+    const avg = field => school.ratingsList.reduce((sum, rating) => sum + (rating[field] || 0), 0) / total;
 
     school.ratings = {
       overall: avg('overall'),
       academic: avg('academic'),
       facilities: avg('facilities'),
       teachers: avg('teachers'),
-      environment: avg('environment')
+      environment: avg('environment'),
     };
     school.averageRating = avg('overall');
     school.totalRatings = total;
@@ -328,7 +355,6 @@ const rateSchool = async (req, res) => {
   }
 };
 
-//Compare schools
 const compareSchools = async (req, res) => {
   try {
     const { school1, school2 } = req.query;
@@ -358,9 +384,9 @@ module.exports = {
   deleteBooking,
   cancelBooking,
   getAllSchools,
-  getAllLocations, // 
+  getAllLocations,
   getSchoolById,
   rateSchool,
   getAllSchoolsForDropdown,
-  compareSchools
+  compareSchools,
 };

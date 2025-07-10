@@ -139,7 +139,7 @@ const ParentRegistration = () => {
 						name="name"
 						value={formData.name}
 						onChange={handleChange}
-						placeholder="e.g. Kevin Kaniaru"
+						placeholder="i.e Firstname Lastname"
 						style={inputStyle}
 						required
 					/>

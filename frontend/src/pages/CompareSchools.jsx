@@ -325,7 +325,7 @@ function CompareSchools() {
                     <td key={school._id} className="cs-actions-cell">
                       <div className="cs-action-buttons">
                         <button 
-                          onClick={() => navigate(`/schools/${school._id}`)}
+                          onClick={() => navigate(`/school/${school._id}`)}
                           className="cs-btn cs-btn-primary cs-btn-small"
                         >
                           👁️ View Details
